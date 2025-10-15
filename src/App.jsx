@@ -1,153 +1,63 @@
-import React, { useState } from 'react';
-import * as XLSX from 'xlsx';
-import { Upload, FileSpreadsheet, Search, X } from 'lucide-react';
+// src/App.jsx
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { FileSpreadsheet, Home, TestTube2 } from 'lucide-react';
+import ExcelParser from './pages/ExcelParser';
+import TestPage from './pages/TestPage';
+import HomePage from './pages/HomePage';
 
-export default function ExcelParser() {
-  const [data, setData] = useState([]);
-  const [headers, setHeaders] = useState([]);
-  const [fileName, setFileName] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setLoading(true);
-    setFileName(file.name);
-
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const bstr = evt.target.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
-        const wsname = wb.SheetNames[0];
-        const ws = wb.Sheets[wsname];
-        const jsonData = XLSX.utils.sheet_to_json(ws, { header: 1 });
-
-        if (jsonData.length > 0) {
-          setHeaders(jsonData[0]);
-          setData(jsonData.slice(1));
-        }
-      } catch (error) {
-        console.error('Помилка парсингу:', error);
-        alert('Помилка при читанні файлу');
-      } finally {
-        setLoading(false);
-      }
-    };
-    reader.readAsBinaryString(file);
-  };
-
-  const clearData = () => {
-    setData([]);
-    setHeaders([]);
-    setFileName('');
-    setSearchTerm('');
-  };
-
-  const filteredData = data.filter(row =>
-    row.some(cell =>
-      cell?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
-
+function Navigation() {
+  const location = useLocation();
+  
+  const isActive = (path) => location.pathname === path;
+  
   return (
-    <div className="app-container">
-      <div className="main-wrapper">
-        <div className="upload-card">
-          <div className="upload-header">
-            <div className="upload-title-wrapper">
-              <FileSpreadsheet />
-              <h1 className="upload-title">Excel Parser</h1>
-            </div>
-            {fileName && (
-              <button onClick={clearData} className="clear-button">
-                <X />
-                Очистити
-              </button>
-            )}
-          </div>
-
-          <div className="upload-zone">
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleFileUpload}
-              id="file-upload"
-            />
-            <label htmlFor="file-upload">
-              <Upload className="upload-icon" />
-              <p className="upload-text">Завантажити Excel файл</p>
-              <p className="upload-subtext">Підтримуються формати: .xlsx, .xls</p>
-              {fileName && (
-                <p className="file-name">📄 {fileName}</p>
-              )}
-            </label>
-          </div>
+    <nav className="navbar">
+      <div className="nav-container">
+        <div className="nav-brand">
+          <FileSpreadsheet className="nav-logo" />
+          <span className="nav-title">Excel Parser App</span>
         </div>
-
-        {loading && (
-          <div className="loading-container">
-            <div className="spinner"></div>
-            <p className="loading-text">Обробка файлу...</p>
-          </div>
-        )}
-
-        {!loading && data.length > 0 && (
-          <div className="data-card">
-            <div className="data-header">
-              <h2 className="data-title">
-                Дані таблиці ({filteredData.length} рядків)
-              </h2>
-              <div className="search-wrapper">
-                <Search className="search-icon" />
-                <input
-                  type="text"
-                  placeholder="Пошук..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="search-input"
-                />
-              </div>
-            </div>
-
-            <div className="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    {headers.map((header, i) => (
-                      <th key={i}>{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredData.map((row, i) => (
-                    <tr key={i}>
-                      {row.map((cell, j) => (
-                        <td key={j}>{cell?.toString() || '-'}</td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            {filteredData.length === 0 && searchTerm && (
-              <div className="no-results">
-                Нічого не знайдено за запитом "{searchTerm}"
-              </div>
-            )}
-          </div>
-        )}
-
-        {!loading && data.length === 0 && (
-          <div className="empty-state">
-            <FileSpreadsheet />
-            <p>Завантажте Excel файл для початку роботи</p>
-          </div>
-        )}
+        
+        <div className="nav-links">
+          <Link 
+            to="/" 
+            className={`nav-link ${isActive('/') ? 'active' : ''}`}
+          >
+            <Home size={18} />
+            Головна
+          </Link>
+          <Link 
+            to="/parser" 
+            className={`nav-link ${isActive('/parser') ? 'active' : ''}`}
+          >
+            <FileSpreadsheet size={18} />
+            Excel Parser
+          </Link>
+          <Link 
+            to="/test" 
+            className={`nav-link ${isActive('/test') ? 'active' : ''}`}
+          >
+            <TestTube2 size={18} />
+            Тестова сторінка
+          </Link>
+        </div>
       </div>
-    </div>
+    </nav>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <div className="app">
+        <Navigation />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/parser" element={<ExcelParser />} />
+          <Route path="/test" element={<TestPage />} />
+        </Routes>
+      </div>
+    </Router>
   );
 }
