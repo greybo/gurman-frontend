@@ -1,3 +1,4 @@
+// src/pages/ExcelParser.jsx
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Upload, FileSpreadsheet, Search, X } from 'lucide-react';
@@ -53,7 +54,7 @@ export default function ExcelParser() {
   );
 
   return (
-    <div className="app-container">
+    <div className="page-container">
       <div className="main-wrapper">
         <div className="upload-card">
           <div className="upload-header">
