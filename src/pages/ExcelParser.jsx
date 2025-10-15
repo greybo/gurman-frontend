@@ -10,6 +10,10 @@ export default function ExcelParser() {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadStatus, setUploadStatus] = useState('');
+  // const [uploadedData, setUploadedData] = useState([]);
+
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -38,6 +42,40 @@ export default function ExcelParser() {
       }
     };
     reader.readAsBinaryString(file);
+  };
+
+  const handleUpload = async () => {
+    if (!fileName) {
+      setUploadStatus('Будь ласка, виберіть файл Excel.');
+      return;
+    }
+
+    setUploadStatus('Завантаження...');
+    const formData = new FormData();
+    formData.append('file', data);
+
+    try {
+      const response = await fetch('http://localhost:3001/api/upload', {
+        method: 'POST',
+        body: data,
+      });
+
+      const result = await response.json(); // Читаємо відповідь у будь-якому випадку
+
+      if (response.ok) {
+        setUploadStatus('Файл успішно завантажено!');
+        // setUploadedData(result.data || []);
+        // setSelectedFile(null);
+        // @ts-ignore
+        document.getElementById('excel-file-input').value = ""; // Скидаємо значення інпуту
+      } else {
+        setUploadStatus(`Помилка завантаження: ${result.message || response.statusText}`);
+      }
+    } catch (error) {
+      console.error('Помилка мережі або сервера:', error);
+      // @ts-ignore
+      setUploadStatus(`Помилка: ${error.message}`);
+    }
   };
 
   const clearData = () => {
@@ -69,7 +107,13 @@ export default function ExcelParser() {
               </button>
             )}
           </div>
-
+          <div >
+            {fileName && <p className="selected-file-name">Вибрано: {fileName}</p>}
+            <button onClick={handleUpload} disabled={!fileName} className="upload-button">
+              Завантажити
+            </button>
+            {uploadStatus && <p className="upload-status">{uploadStatus}</p>}
+          </div>
           <div className="upload-zone">
             <input
               type="file"
