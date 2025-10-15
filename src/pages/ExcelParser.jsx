@@ -1,7 +1,7 @@
 // src/pages/ExcelParser.jsx
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import { Upload, FileSpreadsheet, Search, X } from 'lucide-react';
+import { Upload, FileSpreadsheet, Search, X, CloudUpload } from 'lucide-react';
 
 export default function ExcelParser() {
   const [data, setData] = useState([]);
@@ -9,10 +9,9 @@ export default function ExcelParser() {
   const [fileName, setFileName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
-  // const [uploadedData, setUploadedData] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -20,6 +19,7 @@ export default function ExcelParser() {
 
     setLoading(true);
     setFileName(file.name);
+    setSelectedFile(file);
 
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -44,37 +44,43 @@ export default function ExcelParser() {
     reader.readAsBinaryString(file);
   };
 
-  const handleUpload = async () => {
-    if (!fileName) {
-      setUploadStatus('Будь ласка, виберіть файл Excel.');
+  const handleUploadToBackend = async () => {
+    if (!selectedFile) {
+      setUploadStatus('❌ Будь ласка, виберіть файл Excel.');
       return;
     }
 
-    setUploadStatus('Завантаження...');
+    setUploading(true);
+    setUploadStatus('⏳ Завантаження на сервер...');
+
     const formData = new FormData();
-    formData.append('file', data);
+    formData.append('file', selectedFile);
 
     try {
       const response = await fetch('http://localhost:3001/api/upload', {
         method: 'POST',
-        body: data,
+        body: formData,
       });
 
-      const result = await response.json(); // Читаємо відповідь у будь-якому випадку
+      const result = await response.json();
 
       if (response.ok) {
-        setUploadStatus('Файл успішно завантажено!');
-        // setUploadedData(result.data || []);
-        // setSelectedFile(null);
-        // @ts-ignore
-        document.getElementById('excel-file-input').value = ""; // Скидаємо значення інпуту
+        setUploadStatus('✅ Файл успішно завантажено на сервер!');
+        console.log('Відповідь сервера:', result);
+        
+        // Можна оновити дані з серверної відповіді
+        if (result.headers && result.rows) {
+          setHeaders(result.headers);
+          setData(result.rows);
+        }
       } else {
-        setUploadStatus(`Помилка завантаження: ${result.message || response.statusText}`);
+        setUploadStatus(`❌ Помилка: ${result.error || response.statusText}`);
       }
     } catch (error) {
-      console.error('Помилка мережі або сервера:', error);
-      // @ts-ignore
-      setUploadStatus(`Помилка: ${error.message}`);
+      console.error('Помилка мережі:', error);
+      setUploadStatus(`❌ Помилка з'єднання: ${error.message}`);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -83,6 +89,11 @@ export default function ExcelParser() {
     setHeaders([]);
     setFileName('');
     setSearchTerm('');
+    setSelectedFile(null);
+    setUploadStatus('');
+    
+    const fileInput = document.getElementById('file-upload');
+    if (fileInput) fileInput.value = '';
   };
 
   const filteredData = data.filter(row =>
@@ -107,13 +118,7 @@ export default function ExcelParser() {
               </button>
             )}
           </div>
-          <div >
-            {fileName && <p className="selected-file-name">Вибрано: {fileName}</p>}
-            <button onClick={handleUpload} disabled={!fileName} className="upload-button">
-              Завантажити
-            </button>
-            {uploadStatus && <p className="upload-status">{uploadStatus}</p>}
-          </div>
+
           <div className="upload-zone">
             <input
               type="file"
@@ -130,6 +135,24 @@ export default function ExcelParser() {
               )}
             </label>
           </div>
+
+          {fileName && (
+            <div className="upload-actions">
+              <button 
+                onClick={handleUploadToBackend} 
+                disabled={uploading}
+                className="backend-upload-button"
+              >
+                <CloudUpload size={20} />
+                {uploading ? 'Завантаження...' : 'Відправити на сервер'}
+              </button>
+              {uploadStatus && (
+                <p className={`upload-status ${uploadStatus.includes('✅') ? 'success' : uploadStatus.includes('❌') ? 'error' : 'info'}`}>
+                  {uploadStatus}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {loading && (
