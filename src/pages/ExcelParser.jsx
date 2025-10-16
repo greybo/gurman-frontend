@@ -55,6 +55,10 @@ export default function ExcelParser() {
 
     const formData = new FormData();
     formData.append('file', selectedFile);
+    
+    // Опціонально: додайте custom ID документа
+    // Розкоментуйте, якщо хочете використовувати власний ID:
+    formData.append('documentId', 'my_custom_id_123');
 
     try {
       const response = await fetch('http://localhost:3001/api/upload', {
@@ -65,8 +69,9 @@ export default function ExcelParser() {
       const result = await response.json();
 
       if (response.ok) {
-        setUploadStatus('✅ Файл успішно завантажено на сервер!');
+        setUploadStatus(`✅ Файл успішно завантажено! ID документа: ${result.firestore.id}`);
         console.log('Відповідь сервера:', result);
+        console.log('Firestore Document ID:', result.firestore.id);
         
         // Можна оновити дані з серверної відповіді
         if (result.headers && result.rows) {
