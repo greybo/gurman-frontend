@@ -1,10 +1,11 @@
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { FileSpreadsheet, Home, TestTube2 } from 'lucide-react';
+import { FileSpreadsheet, Home, TestTube2, FolderOpen } from 'lucide-react';
 import ExcelParser from './pages/ExcelParser';
 import TestPage from './pages/TestPage';
 import HomePage from './pages/HomePage';
+import FilesListPage from './pages/FilesListPage';
 
 function Navigation() {
   const location = useLocation();
@@ -35,6 +36,13 @@ function Navigation() {
             Excel Parser
           </Link>
           <Link 
+            to="/files" 
+            className={`nav-link ${isActive('/files') ? 'active' : ''}`}
+          >
+            <FolderOpen size={18} />
+            Мої файли
+          </Link>
+          <Link 
             to="/test" 
             className={`nav-link ${isActive('/test') ? 'active' : ''}`}
           >
@@ -55,6 +63,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/parser" element={<ExcelParser />} />
+          <Route path="/files" element={<FilesListPage />} />
           <Route path="/test" element={<TestPage />} />
         </Routes>
       </div>
