@@ -1,17 +1,19 @@
 // src/pages/ExcelParser.jsx
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import { Upload, FileSpreadsheet, Search, X, CloudUpload } from 'lucide-react';
+import { Upload, FileSpreadsheet, Search, X, CloudUpload, Edit2 } from 'lucide-react';
 
 export default function ExcelParser() {
   const [data, setData] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [fileName, setFileName] = useState('');
+  const [customFileName, setCustomFileName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [showCustomName, setShowCustomName] = useState(false);
 
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
@@ -20,6 +22,10 @@ export default function ExcelParser() {
     setLoading(true);
     setFileName(file.name);
     setSelectedFile(file);
+
+    // Автоматично встановлюємо назву без розширення
+    const nameWithoutExt = file.name.replace(/\.(xlsx|xls)$/i, '');
+    setCustomFileName(nameWithoutExt);
 
     const reader = new FileReader();
     reader.onload = (evt) => {
@@ -44,9 +50,23 @@ export default function ExcelParser() {
     reader.readAsBinaryString(file);
   };
 
+  // Генерація безпечного ID з назви
+  const generateDocumentId = (name) => {
+    const safeName = name
+      .replace(/[^a-zA-Z0-9_-]/g, '_')
+      .toLowerCase();
+    const timestamp = Date.now();
+    return `${safeName}_${timestamp}`;
+  };
+
   const handleUploadToBackend = async () => {
     if (!selectedFile) {
       setUploadStatus('❌ Будь ласка, виберіть файл Excel.');
+      return;
+    }
+
+    if (!customFileName.trim()) {
+      setUploadStatus('❌ Будь ласка, введіть назву файлу.');
       return;
     }
 
@@ -55,10 +75,11 @@ export default function ExcelParser() {
 
     const formData = new FormData();
     formData.append('file', selectedFile);
-    
-    // Опціонально: додайте custom ID документа
-    // Розкоментуйте, якщо хочете використовувати власний ID:
-    formData.append('documentId', 'my_custom_id_123');
+
+    // Генеруємо custom ID з введеної назви
+    // const documentId = generateDocumentId(customFileName);
+    const documentId = customFileName.trim() ?? 'file_' + Date.now();
+    formData.append('documentId', documentId);
 
     try {
       const response = await fetch('http://localhost:3001/api/upload', {
@@ -69,10 +90,10 @@ export default function ExcelParser() {
       const result = await response.json();
 
       if (response.ok) {
-        setUploadStatus(`✅ Файл успішно завантажено! ID документа: ${result.firestore.id}`);
+        setUploadStatus(`✅ Файл успішно збережено як "${customFileName}"! ID: ${result.firestore.id}`);
         console.log('Відповідь сервера:', result);
         console.log('Firestore Document ID:', result.firestore.id);
-        
+
         // Можна оновити дані з серверної відповіді
         if (result.headers && result.rows) {
           setHeaders(result.headers);
@@ -93,10 +114,12 @@ export default function ExcelParser() {
     setData([]);
     setHeaders([]);
     setFileName('');
+    setCustomFileName('');
     setSearchTerm('');
     setSelectedFile(null);
     setUploadStatus('');
-    
+    setShowCustomName(false);
+
     const fileInput = document.getElementById('file-upload');
     if (fileInput) fileInput.value = '';
   };
@@ -143,14 +166,36 @@ export default function ExcelParser() {
 
           {fileName && (
             <div className="upload-actions">
-              <button 
-                onClick={handleUploadToBackend} 
-                disabled={uploading}
+              {/* Поле для введення назви */}
+              <div className="custom-name-section">
+                <label className="custom-name-label">
+                  <Edit2 size={16} />
+                  Назва для збереження:
+                </label>
+                <input
+                  type="text"
+                  value={customFileName}
+                  onChange={(e) => setCustomFileName(e.target.value)}
+                  placeholder="Введіть назву файлу..."
+                  className="custom-name-input"
+                />
+                <p className="custom-name-hint">
+                  {/* 💡 ID документа: {customFileName ? generateDocumentId(customFileName) : '...'} */}
+                  💡 ID документа: {customFileName ??  'file_' + Date.now()}
+                </p>
+              </div>
+
+              {/* Кнопка завантаження */}
+              <button
+                onClick={handleUploadToBackend}
+                disabled={uploading || !customFileName.trim()}
                 className="backend-upload-button"
               >
                 <CloudUpload size={20} />
-                {uploading ? 'Завантаження...' : 'Відправити на сервер'}
+                {uploading ? 'Завантаження...' : 'Зберегти на сервері'}
               </button>
+
+              {/* Статус */}
               {uploadStatus && (
                 <p className={`upload-status ${uploadStatus.includes('✅') ? 'success' : uploadStatus.includes('❌') ? 'error' : 'info'}`}>
                   {uploadStatus}
