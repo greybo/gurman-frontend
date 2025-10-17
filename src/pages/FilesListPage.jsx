@@ -42,7 +42,7 @@ export default function FilesListPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`http://localhost:3001/api/files/${fileId}`);
+      const response = await fetch(`${API_URL}/api/files/${fileId}`);
       const result = await response.json();
       
       if (response.ok) {
@@ -64,7 +64,7 @@ export default function FilesListPage() {
     if (!confirm('Ви впевнені, що хочете видалити цей файл?')) return;
 
     try {
-      const response = await fetch(`http://localhost:3001/api/files/${fileId}`, {
+      const response = await fetch(`${API_URL}/api/files/${fileId}`, {
         method: 'DELETE'
       });
       
