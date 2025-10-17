@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Upload, FileSpreadsheet, Search, X, CloudUpload, Edit2 } from 'lucide-react';
-import  { API_URL } from '../config';
+import  { API_URL } from '../config.js';
 
 export default function ExcelParser() {
   const [data, setData] = useState([]);
