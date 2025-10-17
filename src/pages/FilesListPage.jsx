@@ -1,6 +1,7 @@
 // src/pages/FilesListPage.jsx
 import React, { useState, useEffect } from 'react';
 import { FileSpreadsheet, Search, Trash2, Calendar, Hash, Download } from 'lucide-react';
+import  { API_URL } from '../config.js';
 
 export default function FilesListPage() {
   const [files, setFiles] = useState([]);
@@ -20,7 +21,7 @@ export default function FilesListPage() {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch('http://localhost:3001/api/files');
+      const response = await fetch(`${API_URL}/api/files`);
       const result = await response.json();
       
       if (response.ok) {
