@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
 import { Upload, FileSpreadsheet, Search, X, CloudUpload, Edit2 } from 'lucide-react';
+import  { API_URL } from '../config';
 
 export default function ExcelParser() {
   const [data, setData] = useState([]);
@@ -82,7 +83,7 @@ export default function ExcelParser() {
     formData.append('documentId', documentId);
 
     try {
-      const response = await fetch('http://localhost:3001/api/upload', {
+      const response = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
         body: formData,
       });
