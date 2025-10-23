@@ -1,72 +1,138 @@
 // src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { FileSpreadsheet, Home, TestTube2, FolderOpen } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { FileSpreadsheet, Home, TestTube2, FolderOpen, LogOut, User } from 'lucide-react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
 import ExcelParser from './pages/ExcelParser';
 import TestPage from './pages/TestPage';
 import HomePage from './pages/HomePage';
 import FilesListPage from './pages/FilesListPage';
+import LoginPage from './pages/LoginPage';
 
 function Navigation() {
   const location = useLocation();
-  
+  const { currentUser, logout } = useAuth();
+
   const isActive = (path) => location.pathname === path;
-  
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <nav className="navbar">
       <div className="nav-container">
         <div className="nav-brand">
           <FileSpreadsheet className="nav-logo" />
-          <span className="nav-title">Excel Parser App</span>
+          <span className="nav-title">Gurman App</span>
         </div>
-        
+
         <div className="nav-links">
-          <Link 
-            to="/" 
-            className={`nav-link ${isActive('/') ? 'active' : ''}`}
-          >
-            <Home size={18} />
-            Головна
-          </Link>
-          <Link 
-            to="/parser" 
-            className={`nav-link ${isActive('/parser') ? 'active' : ''}`}
-          >
-            <FileSpreadsheet size={18} />
-            Excel Parser
-          </Link>
-          <Link 
-            to="/files" 
-            className={`nav-link ${isActive('/files') ? 'active' : ''}`}
-          >
-            <FolderOpen size={18} />
-            Мої файли
-          </Link>
-          <Link 
-            to="/test" 
-            className={`nav-link ${isActive('/test') ? 'active' : ''}`}
-          >
-            <TestTube2 size={18} />
-            Тестова сторінка
-          </Link>
+          {currentUser && (
+            <>
+              <Link
+                to="/"
+                className={`nav-link ${isActive('/') ? 'active' : ''}`}
+              >
+                <Home size={18} />
+                Головна
+              </Link>
+              <Link
+                to="/parser"
+                className={`nav-link ${isActive('/parser') ? 'active' : ''}`}
+              >
+                <FileSpreadsheet size={18} />
+                Excel Parser
+              </Link>
+              <Link
+                to="/files"
+                className={`nav-link ${isActive('/files') ? 'active' : ''}`}
+              >
+                <FolderOpen size={18} />
+                Мої файли
+              </Link>
+              {/* <Link
+                to="/test"
+                className={`nav-link ${isActive('/test') ? 'active' : ''}`}
+              >
+                <TestTube2 size={18} />
+                Тестова сторінка
+              </Link> */}
+            </>
+          )}
+
+          {currentUser && (
+            <>
+              <div className="nav-user">
+                <User size={16} />
+                <span>{currentUser.email}</span>
+              </div>
+              <button onClick={handleLogout} className="nav-logout">
+                <LogOut size={18} />
+                Вийти
+              </button>
+            </>
+          )}
         </div>
       </div>
     </nav>
   );
 }
 
+function AppRoutes() {
+  return (
+    <div className="app">
+      <Navigation />
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <HomePage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/parser"
+          element={
+            <PrivateRoute>
+              <ExcelParser />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/files"
+          element={
+            <PrivateRoute>
+              <FilesListPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/test"
+          element={
+            <PrivateRoute>
+              <TestPage />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <Router>
-      <div className="app">
-        <Navigation />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/parser" element={<ExcelParser />} />
-          <Route path="/files" element={<FilesListPage />} />
-          <Route path="/test" element={<TestPage />} />
-        </Routes>
-      </div>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </Router>
   );
 }
