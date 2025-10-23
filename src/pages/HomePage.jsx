@@ -1,7 +1,7 @@
 // src/pages/HomePage.jsx
 import React, { useState, useEffect } from 'react';
 import { RotateCw, ChevronDown } from 'lucide-react';
-import { database } from '../firebase';
+import { database } from '../firebase'; // Переконайтеся, що шлях до firebase правильний
 import { ref, onValue, off } from 'firebase/database';
 
 export default function HomePage() {
@@ -16,34 +16,37 @@ export default function HomePage() {
     setError('');
 
     try {
+      // Шлях до даних в Firebase, як ви і вказали
       const loggingRef = ref(database, 'logging_db/2025/10/22');
       
-      const unsubscribe = onValue(
-        loggingRef,
-        (snapshot) => {
-          if (snapshot.exists()) {
-            const data = snapshot.val();
-            setLoggingData(data);
-            // Автоматично вибираємо першу позицію
-            const firstKey = Object.keys(data)[0];
-            if (firstKey) {
-              setSelectedKey(firstKey);
-            }
-          } else {
-            setLoggingData({});
-            setSelectedKey(null);
+      const handleData = (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          setLoggingData(data);
+          // Автоматично вибираємо перший ключ зі списку
+          const firstKey = Object.keys(data)[0];
+          if (firstKey) {
+            setSelectedKey(firstKey);
           }
-          setLoading(false);
-        },
-        (error) => {
-          console.error('Помилка завантаження:', error);
-          setError('Помилка завантаження даних з бази');
-          setLoading(false);
+        } else {
+          setLoggingData({});
+          setSelectedKey(null);
         }
-      );
+        setLoading(false);
+      };
+
+      const handleError = (error) => {
+        console.error('Помилка завантаження:', error);
+        setError('Помилка завантаження даних з бази');
+        setLoading(false);
+      };
+
+      // Підписка на оновлення даних
+      // const unsubscribe = 
+      onValue(loggingRef, handleData, handleError);
 
       // Очищення підписки при демонтуванні компонента
-      return () => off(loggingRef);
+      return () => off(loggingRef, 'value', handleData);
     } catch (err) {
       console.error('Помилка:', err);
       setError('Помилка з\'єднання з базою даних');
@@ -56,14 +59,24 @@ export default function HomePage() {
     const loggingRef = ref(database, 'logging_db/2025/10/22');
     onValue(loggingRef, (snapshot) => {
       if (snapshot.exists()) {
-        setLoggingData(snapshot.val());
+        const data = snapshot.val();
+        setLoggingData(data);
+        // Оновлюємо вибір, якщо поточний ключ ще існує
+        if (!data[selectedKey]) {
+          const firstKey = Object.keys(data)[0];
+          setSelectedKey(firstKey || null);
+        }
+      } else {
+        setLoggingData({});
+        setSelectedKey(null);
       }
       setLoading(false);
-    });
+    }, { onlyOnce: true }); // Оновлення один раз при натисканні
   };
 
   const selectedData = selectedKey ? loggingData[selectedKey] : null;
 
+  // Функція для форматування значень для відображення
   const formatValue = (value) => {
     if (typeof value === 'object' && value !== null) {
       return JSON.stringify(value, null, 2);
@@ -84,15 +97,11 @@ export default function HomePage() {
               title="Оновити"
               disabled={loading}
             >
-              <RotateCw size={18} />
+              <RotateCw size={18} className={loading ? 'animate-spin' : ''} />
             </button>
           </div>
 
-          {error && (
-            <div className="error-message-sidebar">
-              {error}
-            </div>
-          )}
+          {error && <div className="error-message-sidebar">{error}</div>}
 
           {loading ? (
             <div className="sidebar-loading-logging">
@@ -131,20 +140,15 @@ export default function HomePage() {
 
         {/* Content - Деталі вибраного логу */}
         <div className="logging-content-full">
-          {!selectedData && !loading && (
+          {loading && !selectedData ? (
+             <div className="content-loading-logging">
+                <div className="spinner"></div>
+             </div>
+          ) : !selectedData ? (
             <div className="empty-content-logging">
               <p>Виберіть лог для перегляду деталей</p>
             </div>
-          )}
-
-          {loading && selectedData && (
-            <div className="content-loading-logging">
-              <div className="spinner"></div>
-              <p>Завантаження...</p>
-            </div>
-          )}
-
-          {selectedData && !loading && (
+          ) : (
             <div className="logging-details-full">
               <div className="details-header">
                 <h2 className="details-title-full">Log ID: {selectedKey}</h2>
@@ -168,24 +172,6 @@ export default function HomePage() {
                   </div>
                 ))}
               </div>
-
-              {selectedData.scan && (
-                <div className="scan-info-section">
-                  <h3 className="scan-section-title">Інформація про сканування</h3>
-                  <div className="scan-info-grid">
-                    <div className="info-box">
-                      <span className="info-label">Screen:</span>
-                      <span className="info-value">{selectedData.scan.screen}</span>
-                    </div>
-                    <div className="info-box">
-                      <span className="info-label">Success:</span>
-                      <span className={`info-value ${selectedData.scan.success ? 'success' : 'error'}`}>
-                        {selectedData.scan.success ? '✓ Успішно' : '✗ Помилка'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
         </div>
