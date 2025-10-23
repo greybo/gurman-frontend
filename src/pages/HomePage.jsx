@@ -17,7 +17,7 @@ export default function HomePage() {
 
     try {
       // Шлях до даних в Firebase, як ви і вказали
-      const loggingRef = ref(database, 'logging_db/2025/10/22');
+      const loggingRef = ref(database, 'release/logging_db/2025/10/22');
       
       const handleData = (snapshot) => {
         if (snapshot.exists()) {
@@ -56,7 +56,7 @@ export default function HomePage() {
 
   const handleRefresh = () => {
     setLoading(true);
-    const loggingRef = ref(database, 'logging_db/2025/10/22');
+    const loggingRef = ref(database, 'release/logging_db/2025/10/22');
     onValue(loggingRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
