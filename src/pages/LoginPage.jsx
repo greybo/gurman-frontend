@@ -64,7 +64,7 @@ export default function LoginPage() {
       <div className="login-card">
         <div className="login-header">
           <FileSpreadsheet className="login-logo" />
-          <h1 className="login-title">Excel Parser</h1>
+          <h1 className="login-title">Gurman</h1>
           <p className="login-subtitle">
             {isSignup ? 'Створити обліковий запис' : 'Увійти в систему'}
           </p>

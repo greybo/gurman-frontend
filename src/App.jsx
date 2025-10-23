@@ -9,6 +9,7 @@ import TestPage from './pages/TestPage';
 import HomePage from './pages/HomePage';
 import FilesListPage from './pages/FilesListPage';
 import LoginPage from './pages/LoginPage';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 function Navigation() {
   const location = useLocation();
@@ -26,21 +27,27 @@ function Navigation() {
 
   return (
     <nav className="navbar">
-      <div className="nav-container">
-        <div className="nav-brand">
-          <FileSpreadsheet className="nav-logo" />
-          <span className="nav-title">Gurman App</span>
-        </div>
-
-        <div className="nav-links">
-          {currentUser && (
-            <>
-              <Link
+      {currentUser && (
+        <>
+          <div className="nav-container">
+            <div className="nav-brand">
+              <FileSpreadsheet className="nav-logo" />
+              <span className="nav-title">Gurman App</span>
+            </div>
+            <div className="nav-links">
+              {/* <Link
                 to="/"
                 className={`nav-link ${isActive('/') ? 'active' : ''}`}
               >
                 <Home size={18} />
                 Головна
+              </Link> */}
+              <Link
+                to="/"
+                className={`nav-link ${isActive('/') ? 'active' : ''}`}
+              >
+                <FileSpreadsheet size={18} />
+                Аналітика
               </Link>
               <Link
                 to="/parser"
@@ -63,11 +70,6 @@ function Navigation() {
                 <TestTube2 size={18} />
                 Тестова сторінка
               </Link> */}
-            </>
-          )}
-
-          {currentUser && (
-            <>
               <div className="nav-user">
                 <User size={16} />
                 <span>{currentUser.email}</span>
@@ -76,11 +78,11 @@ function Navigation() {
                 <LogOut size={18} />
                 Вийти
               </button>
-            </>
-          )}
-        </div>
-      </div>
-    </nav>
+            </div>
+          </div>
+        </>
+      )}
+    </nav >
   );
 }
 
@@ -90,11 +92,19 @@ function AppRoutes() {
       <Navigation />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        <Route
+        {/* <Route
           path="/"
           element={
             <PrivateRoute>
               <HomePage />
+            </PrivateRoute>
+          }
+        /> */}
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <AnalyticsPage />
             </PrivateRoute>
           }
         />
