@@ -1,57 +1,193 @@
 // src/pages/HomePage.jsx
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { FileSpreadsheet, Zap, Shield, Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { RotateCw, ChevronDown } from 'lucide-react';
+import { database } from '../firebase';
+import { ref, onValue, off } from 'firebase/database';
 
 export default function HomePage() {
+  const [loggingData, setLoggingData] = useState({});
+  const [selectedKey, setSelectedKey] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  // Завантаження даних з Firebase Realtime Database
+  useEffect(() => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const loggingRef = ref(database, 'logging_db/2025/10/22');
+      
+      const unsubscribe = onValue(
+        loggingRef,
+        (snapshot) => {
+          if (snapshot.exists()) {
+            const data = snapshot.val();
+            setLoggingData(data);
+            // Автоматично вибираємо першу позицію
+            const firstKey = Object.keys(data)[0];
+            if (firstKey) {
+              setSelectedKey(firstKey);
+            }
+          } else {
+            setLoggingData({});
+            setSelectedKey(null);
+          }
+          setLoading(false);
+        },
+        (error) => {
+          console.error('Помилка завантаження:', error);
+          setError('Помилка завантаження даних з бази');
+          setLoading(false);
+        }
+      );
+
+      // Очищення підписки при демонтуванні компонента
+      return () => off(loggingRef);
+    } catch (err) {
+      console.error('Помилка:', err);
+      setError('Помилка з\'єднання з базою даних');
+      setLoading(false);
+    }
+  }, []);
+
+  const handleRefresh = () => {
+    setLoading(true);
+    const loggingRef = ref(database, 'logging_db/2025/10/22');
+    onValue(loggingRef, (snapshot) => {
+      if (snapshot.exists()) {
+        setLoggingData(snapshot.val());
+      }
+      setLoading(false);
+    });
+  };
+
+  const selectedData = selectedKey ? loggingData[selectedKey] : null;
+
+  const formatValue = (value) => {
+    if (typeof value === 'object' && value !== null) {
+      return JSON.stringify(value, null, 2);
+    }
+    return String(value);
+  };
+
   return (
     <div className="page-container">
-      <div className="hero-section">
-        <div className="hero-content">
-          <h1 className="hero-title">
-            <Sparkles className="hero-icon" />
-            Вітаємо в Excel Parser
-          </h1>
-          <p className="hero-subtitle">
-            Швидкий і зручний інструмент для роботи з Excel файлами
-          </p>
-          <div className="hero-buttons">
-            <Link to="/parser" className="btn-primary">
-              Почати роботу
-            </Link>
-            <Link to="/test" className="btn-secondary">
-              Тестова сторінка
-            </Link>
+      <div className="logging-page-layout">
+        {/* Sidebar з логами */}
+        <div className="logging-sidebar-full">
+          <div className="sidebar-header-logging">
+            <h3 className="sidebar-title-logging">Логи 22.10.2025</h3>
+            <button 
+              onClick={handleRefresh}
+              className="refresh-icon-button"
+              title="Оновити"
+              disabled={loading}
+            >
+              <RotateCw size={18} />
+            </button>
           </div>
-        </div>
-      </div>
 
-      <div className="features-section">
-        <h2 className="section-title">Можливості</h2>
-        <div className="features-grid">
-          <div className="feature-card">
-            <FileSpreadsheet className="feature-icon" />
-            <h3 className="feature-title">Парсинг Excel</h3>
-            <p className="feature-text">
-              Завантажуйте та переглядайте дані з Excel файлів (.xlsx, .xls)
-            </p>
-          </div>
-          
-          <div className="feature-card">
-            <Zap className="feature-icon" />
-            <h3 className="feature-title">Швидкий пошук</h3>
-            <p className="feature-text">
-              Миттєво знаходьте потрібну інформацію серед всіх даних
-            </p>
-          </div>
-          
-          <div className="feature-card">
-            <Shield className="feature-icon" />
-            <h3 className="feature-title">Безпека</h3>
-            <p className="feature-text">
-              Всі дані обробляються локально у вашому браузері
-            </p>
-          </div>
+          {error && (
+            <div className="error-message-sidebar">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="sidebar-loading-logging">
+              <div className="spinner"></div>
+              <p>Завантаження...</p>
+            </div>
+          ) : Object.keys(loggingData).length === 0 ? (
+            <div className="empty-sidebar-logging">
+              <p>Немає даних</p>
+            </div>
+          ) : (
+            <div className="logging-items-full">
+              {Object.entries(loggingData).map(([key, value]) => (
+                <div
+                  key={key}
+                  className={`logging-item-full ${selectedKey === key ? 'active' : ''}`}
+                  onClick={() => setSelectedKey(key)}
+                >
+                  <div className="logging-item-content-full">
+                    <div className="logging-item-header">
+                      <p className="logging-item-title-full">{key}</p>
+                      {value.actionName && (
+                        <span className="logging-action-badge">{value.actionName}</span>
+                      )}
+                    </div>
+                    {value.userId && (
+                      <p className="logging-item-meta-full">{value.userId}</p>
+                    )}
+                  </div>
+                  <ChevronDown size={16} className="logging-item-icon-full" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Content - Деталі вибраного логу */}
+        <div className="logging-content-full">
+          {!selectedData && !loading && (
+            <div className="empty-content-logging">
+              <p>Виберіть лог для перегляду деталей</p>
+            </div>
+          )}
+
+          {loading && selectedData && (
+            <div className="content-loading-logging">
+              <div className="spinner"></div>
+              <p>Завантаження...</p>
+            </div>
+          )}
+
+          {selectedData && !loading && (
+            <div className="logging-details-full">
+              <div className="details-header">
+                <h2 className="details-title-full">Log ID: {selectedKey}</h2>
+              </div>
+
+              <div className="details-grid">
+                {Object.entries(selectedData).map(([key, value]) => (
+                  <div key={key} className="detail-card">
+                    <div className="detail-card-header">
+                      <span className="detail-card-key">{key}</span>
+                    </div>
+                    <div className="detail-card-body">
+                      {typeof value === 'object' && value !== null ? (
+                        <pre className="detail-card-value">
+                          {JSON.stringify(value, null, 2)}
+                        </pre>
+                      ) : (
+                        <p className="detail-card-value">{formatValue(value)}</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {selectedData.scan && (
+                <div className="scan-info-section">
+                  <h3 className="scan-section-title">Інформація про сканування</h3>
+                  <div className="scan-info-grid">
+                    <div className="info-box">
+                      <span className="info-label">Screen:</span>
+                      <span className="info-value">{selectedData.scan.screen}</span>
+                    </div>
+                    <div className="info-box">
+                      <span className="info-label">Success:</span>
+                      <span className={`info-value ${selectedData.scan.success ? 'success' : 'error'}`}>
+                        {selectedData.scan.success ? '✓ Успішно' : '✗ Помилка'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
