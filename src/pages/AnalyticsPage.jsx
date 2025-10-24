@@ -128,7 +128,7 @@ export default function AnalyticsPage() {
           totalOrders += 1;
           
           // Підраховуємо по статусам
-          if (order.statusId && statusCounts.hasOwnProperty(order.statusId)) {
+          if (order.statusId && Object.prototype.hasOwnProperty.call(statusCounts, order.statusId)) {
             statusCounts[order.statusId] += 1;
           }
           
