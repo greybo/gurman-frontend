@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { database } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { BarChart2, Calendar as CalendarIcon, User, Activity } from 'lucide-react';
+import { BarChart2, Calendar as CalendarIcon, User, Activity, Package, ShoppingCart } from 'lucide-react';
 
 export default function AnalyticsPage() {
   // Отримуємо поточну дату
@@ -26,6 +26,16 @@ export default function AnalyticsPage() {
   const [timeInterval, setTimeInterval] = useState(60); // 10, 30, або 60 хвилин
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
+  
+  // Нові стани для даних замовлень
+  const [allOrdersData, setAllOrdersData] = useState([]);
+  const [totalProductAmount, setTotalProductAmount] = useState(0);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState('');
+  const [orderStats, setOrderStats] = useState({
+    totalOrders: 0,
+    totalProducts: 0
+  });
 
   // Завантаження місяців та днів
   useEffect(() => {
@@ -59,7 +69,7 @@ export default function AnalyticsPage() {
     }, { onlyOnce: true });
   }, [selectedYear, selectedMonth]);
 
-  // Завантаження даних
+  // Завантаження даних логування
   useEffect(() => {
     if (!selectedDay || availableDays.length === 0) return;
 
@@ -87,6 +97,50 @@ export default function AnalyticsPage() {
       setLoading(false);
     }, { onlyOnce: true });
   }, [selectedYear, selectedMonth, selectedDay, availableDays]);
+
+  // Завантаження даних всіх замовлень
+  useEffect(() => {
+    setOrdersLoading(true);
+    setOrdersError('');
+    
+    const ordersRef = ref(database, 'release/orders_DB_V3');
+    
+    onValue(ordersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const ordersData = snapshot.val();
+        
+        // Конвертуємо об'єкт в масив
+        const ordersArray = Object.values(ordersData);
+        setAllOrdersData(ordersArray);
+        
+        // Сумуємо товари по всім замовленням
+        let totalProducts = 0;
+        let totalOrders = 0;
+        
+        ordersArray.forEach(order => {
+          if (order.products && Array.isArray(order.products)) {
+            totalOrders += 1;
+            order.products.forEach(product => {
+              totalProducts += (product.amount || 0);
+            });
+          }
+        });
+        
+        setTotalProductAmount(totalProducts);
+        setOrderStats({
+          totalOrders: totalOrders,
+          totalProducts: totalProducts
+        });
+        setOrdersError('');
+      } else {
+        setAllOrdersData([]);
+        setTotalProductAmount(0);
+        setOrderStats({ totalOrders: 0, totalProducts: 0 });
+        setOrdersError('Замовлень не знайдено');
+      }
+      setOrdersLoading(false);
+    }, { onlyOnce: true });
+  }, []);
 
   // Обробка даних для графіка
   useEffect(() => {
@@ -180,6 +234,47 @@ export default function AnalyticsPage() {
             <h1 className="analytics-title">Аналітика логів</h1>
             <p className="analytics-subtitle">Візуалізація даних по користувачам та діям</p>
           </div>
+        </div>
+      </div>
+
+      {/* Карточка з інформацією про всі замовлення */}
+      <div className="analytics-date-card">
+        <div className="date-card-header">
+          <ShoppingCart size={20} />
+          <h3>Інформація про замовлення</h3>
+        </div>
+        <div className="date-card-body">
+          {ordersLoading ? (
+            <div style={{ padding: '12px', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '6px', textAlign: 'center' }}>
+              Завантаження даних замовлень...
+            </div>
+          ) : ordersError ? (
+            <div style={{ padding: '12px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', textAlign: 'center' }}>
+              {ordersError}
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+              {/* Всього замовлень */}
+              <div style={{ padding: '16px', backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px' }}>
+                <div style={{ fontSize: '14px', color: '#0c4a6e', fontWeight: '600', marginBottom: '8px' }}>
+                  Всього замовлень
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: '#0369a1' }}>
+                  {orderStats.totalOrders}
+                </div>
+              </div>
+              
+              {/* Всього товарів */}
+              <div style={{ padding: '16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
+                <div style={{ fontSize: '14px', color: '#065f46', fontWeight: '600', marginBottom: '8px' }}>
+                  Кількість товару
+                </div>
+                <div style={{ fontSize: '28px', fontWeight: '700', color: '#059669' }}>
+                  {orderStats.totalProducts}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
