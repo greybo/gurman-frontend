@@ -5,6 +5,8 @@ import { ref, onValue } from 'firebase/database';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { BarChart2, Calendar as CalendarIcon, User, Activity, Package, ShoppingCart } from 'lucide-react';
 
+// const prefixPath = 'release';
+const prefixPath = 'DEBUG';
 export default function AnalyticsPage() {
   // Отримуємо поточну дату
   const today = new Date();
@@ -39,7 +41,7 @@ export default function AnalyticsPage() {
 
   // Завантаження місяців та днів
   useEffect(() => {
-    const yearRef = ref(database, `release/logging_db/${selectedYear}`);
+    const yearRef = ref(database, `${prefixPath}/logging_db/${selectedYear}`);
     onValue(yearRef, (snapshot) => {
       if (snapshot.exists()) {
         const months = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
@@ -55,7 +57,7 @@ export default function AnalyticsPage() {
 
   useEffect(() => {
     if (!selectedMonth) return;
-    const monthRef = ref(database, `release/logging_db/${selectedYear}/${selectedMonth}`);
+    const monthRef = ref(database, `${prefixPath}/logging_db/${selectedYear}/${selectedMonth}`);
     onValue(monthRef, (snapshot) => {
       if (snapshot.exists()) {
         const days = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
@@ -74,7 +76,7 @@ export default function AnalyticsPage() {
     if (!selectedDay || availableDays.length === 0) return;
 
     setLoading(true);
-    const dayRef = ref(database, `release/logging_db/${selectedYear}/${selectedMonth}/${selectedDay}`);
+    const dayRef = ref(database, `${prefixPath}/logging_db/${selectedYear}/${selectedMonth}/${selectedDay}`);
     
     onValue(dayRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -103,7 +105,7 @@ export default function AnalyticsPage() {
     setOrdersLoading(true);
     setOrdersError('');
     
-    const ordersRef = ref(database, 'release/orders_DB_V3');
+    const ordersRef = ref(database, `${prefixPath}/orders_DB_V3`);
     
     onValue(ordersRef, (snapshot) => {
       if (snapshot.exists()) {
