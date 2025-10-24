@@ -37,11 +37,11 @@ export default function AnalyticsPage() {
     totalOrders: 0,
     totalProducts: 0,
     byStatus: [
-      { id: 2, name: 'Підтверджено', count: 0, color: '#ffea00ff', bgColor: '#fffbeb' },
-      { id: 3, name: 'На відправку', count: 0, color: '#FF9800', bgColor: '#fffbeb' },
-      { id: 13, name: 'Комплектується', count: 0, color: '#057CB1', bgColor: '#faf5ff' },
-      { id: 11, name: 'Зібрано', count: 0, color: '#FF9494', bgColor: '#fffafcff' },
-      { id: 24, name: 'Передано кур\'єру', count: 0, color: '#003E02', bgColor: '#cee7cfff' }
+      { id: 2, name: 'Підтверджено', count: 0, productsCount: 0, color: '#ffea00ff', bgColor: '#fffbeb' },
+      { id: 3, name: 'На відправку', count: 0, productsCount: 0, color: '#FF9800', bgColor: '#fffbeb' },
+      { id: 13, name: 'Комплектується', count: 0, productsCount: 0, color: '#057CB1', bgColor: '#faf5ff' },
+      { id: 11, name: 'Зібрано', count: 0, productsCount: 0, color: '#FF9494', bgColor: '#fffafcff' },
+      { id: 24, name: 'Передано кур\'єру', count: 0, productsCount: 0, color: '#003E02', bgColor: '#cee7cfff' }
     ]
   });
 
@@ -119,26 +119,30 @@ export default function AnalyticsPage() {
         let totalProducts = 0;
         let totalOrders = 0;
         const statusCounts = {
-          2: 0,
-          3: 0,
-          13: 0,
-          11: 0,
-          24: 0
+          2: { orders: 0, products: 0 },
+          3: { orders: 0, products: 0 },
+          13: { orders: 0, products: 0 },
+          11: { orders: 0, products: 0 },
+          24: { orders: 0, products: 0 }
         };
         
         ordersArray.forEach(order => {
           totalOrders += 1;
           
-          // Підраховуємо по статусам
-          if (order.statusId && Object.prototype.hasOwnProperty.call(statusCounts, order.statusId)) {
-            statusCounts[order.statusId] += 1;
-          }
-          
           // Сумуємо товари
+          let orderProducts = 0;
           if (order.products && Array.isArray(order.products)) {
             order.products.forEach(product => {
-              totalProducts += (product.amount || 0);
+              const amount = product.amount || 0;
+              orderProducts += amount;
+              totalProducts += amount;
             });
+          }
+          
+          // Підраховуємо по статусам
+          if (order.statusId && Object.prototype.hasOwnProperty.call(statusCounts, order.statusId)) {
+            statusCounts[order.statusId].orders += 1;
+            statusCounts[order.statusId].products += orderProducts;
           }
         });
         
@@ -148,7 +152,8 @@ export default function AnalyticsPage() {
           totalProducts: totalProducts,
           byStatus: prevStats.byStatus.map(status => ({
             ...status,
-            count: statusCounts[status.id]
+            count: statusCounts[status.id].orders,
+            productsCount: statusCounts[status.id].products
           }))
         }));
         
@@ -161,7 +166,8 @@ export default function AnalyticsPage() {
           totalProducts: 0,
           byStatus: prevStats.byStatus.map(status => ({
             ...status,
-            count: 0
+            count: 0,
+            productsCount: 0
           }))
         }));
         setOrdersError('Замовлень не знайдено');
@@ -293,8 +299,11 @@ export default function AnalyticsPage() {
                     <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600', marginBottom: '6px', lineHeight: '1.3' }}>
                       {status.name}
                     </div>
-                    <div style={{ fontSize: '22px', fontWeight: '700', color: status.color }}>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: status.color, marginBottom: '4px' }}>
                       {status.count}
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
+                      товарів: {status.productsCount}
                     </div>
                   </div>
                 ))}
