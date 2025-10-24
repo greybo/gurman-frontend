@@ -17,6 +17,7 @@ export default function AnalyticsPage() {
   const [actions, setActions] = useState([]);
   const [selectedUser, setSelectedUser] = useState('all');
   const [selectedAction, setSelectedAction] = useState('all');
+  const [timeInterval, setTimeInterval] = useState(60); // 10, 30, або 60 хвилин
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -95,42 +96,58 @@ export default function AnalyticsPage() {
       return { hours, minutes, timeStr };
     };
 
-    // Групуємо по годинах
-    const hourlyData = {};
+    // Функція для визначення інтервалу
+    const getTimeInterval = (hours, minutes) => {
+      const totalMinutes = hours * 60 + minutes;
+      const intervalMinutes = Math.floor(totalMinutes / timeInterval) * timeInterval;
+      const intervalHours = Math.floor(intervalMinutes / 60);
+      const intervalMins = intervalMinutes % 60;
+      
+      return `${intervalHours.toString().padStart(2, '0')}:${intervalMins.toString().padStart(2, '0')}`;
+    };
+
+    // Групуємо по інтервалах
+    const intervalData = {};
     
     filteredData.forEach(item => {
-      const { hours } = parseTime(item.logId);
-      const hourKey = `${hours.toString().padStart(2, '0')}:00`;
+      const { hours, minutes } = parseTime(item.logId);
+      const intervalKey = getTimeInterval(hours, minutes);
       
-      if (!hourlyData[hourKey]) {
-        hourlyData[hourKey] = {
-          hour: hourKey,
+      if (!intervalData[intervalKey]) {
+        intervalData[intervalKey] = {
+          time: intervalKey,
           successCount: 0,
           failCount: 0,
           total: 0
         };
       }
       
-      hourlyData[hourKey].total += 1;
+      intervalData[intervalKey].total += 1;
       
       if (item.scan?.success === true || item.scan?.success === 'true') {
-        hourlyData[hourKey].successCount += 1;
+        intervalData[intervalKey].successCount += 1;
       } else if (item.scan?.success === false || item.scan?.success === 'false') {
-        hourlyData[hourKey].failCount += 1;
+        intervalData[intervalKey].failCount += 1;
       }
     });
 
     // Конвертуємо в масив і сортуємо
-    const chartArray = Object.values(hourlyData).sort((a, b) => 
-      a.hour.localeCompare(b.hour)
+    const chartArray = Object.values(intervalData).sort((a, b) => 
+      a.time.localeCompare(b.time)
     );
 
     setChartData(chartArray);
-  }, [loggingData, selectedUser, selectedAction]);
+  }, [loggingData, selectedUser, selectedAction, timeInterval]);
 
   const monthNames = [
     'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
     'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
+  ];
+
+  const timeIntervals = [
+    { value: 10, label: '10 хв' },
+    { value: 30, label: '30 хв' },
+    { value: 60, label: '1 год' }
   ];
 
   return (
@@ -244,15 +261,28 @@ export default function AnalyticsPage() {
       {/* График */}
       <div className="chart-card">
         <div className="chart-header">
-          <h3>Графік активності по годинах</h3>
-          <div className="chart-legend-custom">
-            <div className="legend-item">
-              <span className="legend-dot success"></span>
-              <span>Успішні</span>
+          <h3>Графік активності</h3>
+          <div className="chart-controls">
+            <div className="time-interval-buttons">
+              {timeIntervals.map(interval => (
+                <button
+                  key={interval.value}
+                  className={`interval-button ${timeInterval === interval.value ? 'active' : ''}`}
+                  onClick={() => setTimeInterval(interval.value)}
+                >
+                  {interval.label}
+                </button>
+              ))}
             </div>
-            <div className="legend-item">
-              <span className="legend-dot error"></span>
-              <span>Помилки</span>
+            <div className="chart-legend-custom">
+              <div className="legend-item">
+                <span className="legend-dot success"></span>
+                <span>Успішні</span>
+              </div>
+              <div className="legend-item">
+                <span className="legend-dot error"></span>
+                <span>Помилки</span>
+              </div>
             </div>
           </div>
         </div>
@@ -271,7 +301,7 @@ export default function AnalyticsPage() {
             <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
               <XAxis 
-                dataKey="hour" 
+                dataKey="time" 
                 stroke="#6b7280"
                 style={{ fontSize: '12px' }}
               />
