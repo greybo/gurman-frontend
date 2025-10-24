@@ -6,9 +6,15 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { BarChart2, Calendar as CalendarIcon, User, Activity } from 'lucide-react';
 
 export default function AnalyticsPage() {
-  const [selectedYear, setSelectedYear] = useState(2025);
-  const [selectedMonth, setSelectedMonth] = useState(10);
-  const [selectedDay, setSelectedDay] = useState(22);
+  // Отримуємо поточну дату
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1; // getMonth() повертає 0-11
+  const currentDay = today.getDate();
+
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonth);
+  const [selectedDay, setSelectedDay] = useState(currentDay);
   const [availableMonths, setAvailableMonths] = useState([]);
   const [availableDays, setAvailableDays] = useState([]);
   
@@ -28,6 +34,11 @@ export default function AnalyticsPage() {
       if (snapshot.exists()) {
         const months = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
         setAvailableMonths(months);
+        
+        // Якщо поточний місяць недоступний, вибираємо перший доступний
+        if (months.length > 0 && !months.includes(selectedMonth)) {
+          setSelectedMonth(months[0]);
+        }
       }
     }, { onlyOnce: true });
   }, [selectedYear]);
@@ -39,13 +50,18 @@ export default function AnalyticsPage() {
       if (snapshot.exists()) {
         const days = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
         setAvailableDays(days);
+        
+        // Якщо поточний день недоступний, вибираємо перший доступний
+        if (days.length > 0 && !days.includes(selectedDay)) {
+          setSelectedDay(days[0]);
+        }
       }
     }, { onlyOnce: true });
   }, [selectedYear, selectedMonth]);
 
   // Завантаження даних
   useEffect(() => {
-    if (!selectedDay) return;
+    if (!selectedDay || availableDays.length === 0) return;
 
     setLoading(true);
     const dayRef = ref(database, `release/logging_db/${selectedYear}/${selectedMonth}/${selectedDay}`);
@@ -62,10 +78,15 @@ export default function AnalyticsPage() {
         // Витягуємо унікальні дії
         const uniqueActions = [...new Set(Object.values(data).map(item => item.actionName))].filter(Boolean);
         setActions(uniqueActions);
+      } else {
+        // Якщо немає даних для вибраного дня
+        setLoggingData({});
+        setUsers([]);
+        setActions([]);
       }
       setLoading(false);
     }, { onlyOnce: true });
-  }, [selectedYear, selectedMonth, selectedDay]);
+  }, [selectedYear, selectedMonth, selectedDay, availableDays]);
 
   // Обробка даних для графіка
   useEffect(() => {
