@@ -37,10 +37,11 @@ export default function AnalyticsPage() {
     totalOrders: 0,
     totalProducts: 0,
     byStatus: [
+      { id: 2, name: 'Підтверджено', count: 0, color: '#ffea00ff', bgColor: '#fffbeb' },
       { id: 3, name: 'На відправку', count: 0, color: '#FF9800', bgColor: '#fffbeb' },
       { id: 13, name: 'Комплектується', count: 0, color: '#057CB1', bgColor: '#faf5ff' },
-      { id: 11, name: 'Зібрано', count: 0, color: '#FF9494', bgColor: '#eff6ff' },
-      { id: 24, name: 'Передано кур\'єру', count: 0, color: '#003E02', bgColor: '#f0fdf4' }
+      { id: 11, name: 'Зібрано', count: 0, color: '#FF9494', bgColor: '#fffafcff' },
+      { id: 24, name: 'Передано кур\'єру', count: 0, color: '#003E02', bgColor: '#cee7cfff' }
     ]
   });
 
@@ -118,6 +119,7 @@ export default function AnalyticsPage() {
         let totalProducts = 0;
         let totalOrders = 0;
         const statusCounts = {
+          2: 0,
           3: 0,
           13: 0,
           11: 0,
