@@ -3,15 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { database } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { BarChart2, Calendar as CalendarIcon, User, Activity, Package, ShoppingCart } from 'lucide-react';
+import { BarChart2, Calendar as CalendarIcon, User, Activity, ShoppingCart } from 'lucide-react';
 
-// const prefixPath = 'release';
-const prefixPath = 'DEBUG';
+const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
+
 export default function AnalyticsPage() {
   // Отримуємо поточну дату
   const today = new Date();
   const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1; // getMonth() повертає 0-11
+  const currentMonth = today.getMonth() + 1;
   const currentDay = today.getDate();
 
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -25,18 +25,23 @@ export default function AnalyticsPage() {
   const [actions, setActions] = useState([]);
   const [selectedUser, setSelectedUser] = useState('all');
   const [selectedAction, setSelectedAction] = useState('all');
-  const [timeInterval, setTimeInterval] = useState(60); // 10, 30, або 60 хвилин
+  const [timeInterval, setTimeInterval] = useState(60);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
   
-  // Нові стани для даних замовлень
+  // Стани для даних замовлень
   const [allOrdersData, setAllOrdersData] = useState([]);
-  const [totalProductAmount, setTotalProductAmount] = useState(0);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState('');
   const [orderStats, setOrderStats] = useState({
     totalOrders: 0,
-    totalProducts: 0
+    totalProducts: 0,
+    byStatus: [
+      { id: 3, name: 'На відправку', count: 0, color: '#FF9800', bgColor: '#fffbeb' },
+      { id: 13, name: 'Комплектується', count: 0, color: '#057CB1', bgColor: '#faf5ff' },
+      { id: 11, name: 'Зібрано', count: 0, color: '#FF9494', bgColor: '#eff6ff' },
+      { id: 24, name: 'Передано кур\'єру', count: 0, color: '#003E02', bgColor: '#f0fdf4' }
+    ]
   });
 
   // Завантаження місяців та днів
@@ -47,7 +52,6 @@ export default function AnalyticsPage() {
         const months = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
         setAvailableMonths(months);
         
-        // Якщо поточний місяць недоступний, вибираємо перший доступний
         if (months.length > 0 && !months.includes(selectedMonth)) {
           setSelectedMonth(months[0]);
         }
@@ -63,7 +67,6 @@ export default function AnalyticsPage() {
         const days = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
         setAvailableDays(days);
         
-        // Якщо поточний день недоступний, вибираємо перший доступний
         if (days.length > 0 && !days.includes(selectedDay)) {
           setSelectedDay(days[0]);
         }
@@ -83,15 +86,12 @@ export default function AnalyticsPage() {
         const data = snapshot.val();
         setLoggingData(data);
         
-        // Витягуємо унікальних користувачів
         const uniqueUsers = [...new Set(Object.values(data).map(item => item.userId))].filter(Boolean);
         setUsers(uniqueUsers);
         
-        // Витягуємо унікальні дії
         const uniqueActions = [...new Set(Object.values(data).map(item => item.actionName))].filter(Boolean);
         setActions(uniqueActions);
       } else {
-        // Якщо немає даних для вибраного дня
         setLoggingData({});
         setUsers([]);
         setActions([]);
@@ -104,40 +104,64 @@ export default function AnalyticsPage() {
   useEffect(() => {
     setOrdersLoading(true);
     setOrdersError('');
-    
+
     const ordersRef = ref(database, `${prefixPath}/orders_DB_V3`);
-    
+
     onValue(ordersRef, (snapshot) => {
       if (snapshot.exists()) {
         const ordersData = snapshot.val();
         
-        // Конвертуємо об'єкт в масив
         const ordersArray = Object.values(ordersData);
         setAllOrdersData(ordersArray);
         
-        // Сумуємо товари по всім замовленням
+        // Ініціалізуємо статистику
         let totalProducts = 0;
         let totalOrders = 0;
+        const statusCounts = {
+          3: 0,
+          13: 0,
+          11: 0,
+          24: 0
+        };
         
         ordersArray.forEach(order => {
+          totalOrders += 1;
+          
+          // Підраховуємо по статусам
+          if (order.statusId && statusCounts.hasOwnProperty(order.statusId)) {
+            statusCounts[order.statusId] += 1;
+          }
+          
+          // Сумуємо товари
           if (order.products && Array.isArray(order.products)) {
-            totalOrders += 1;
             order.products.forEach(product => {
               totalProducts += (product.amount || 0);
             });
           }
         });
         
-        setTotalProductAmount(totalProducts);
-        setOrderStats({
+        setOrderStats(prevStats => ({
+          ...prevStats,
           totalOrders: totalOrders,
-          totalProducts: totalProducts
-        });
+          totalProducts: totalProducts,
+          byStatus: prevStats.byStatus.map(status => ({
+            ...status,
+            count: statusCounts[status.id]
+          }))
+        }));
+        
         setOrdersError('');
       } else {
         setAllOrdersData([]);
-        setTotalProductAmount(0);
-        setOrderStats({ totalOrders: 0, totalProducts: 0 });
+        setOrderStats(prevStats => ({
+          ...prevStats,
+          totalOrders: 0,
+          totalProducts: 0,
+          byStatus: prevStats.byStatus.map(status => ({
+            ...status,
+            count: 0
+          }))
+        }));
         setOrdersError('Замовлень не знайдено');
       }
       setOrdersLoading(false);
@@ -151,7 +175,6 @@ export default function AnalyticsPage() {
       return;
     }
 
-    // Фільтруємо дані
     let filteredData = Object.entries(loggingData).map(([logId, data]) => ({
       logId,
       ...data
@@ -165,15 +188,13 @@ export default function AnalyticsPage() {
       filteredData = filteredData.filter(item => item.actionName === selectedAction);
     }
 
-    // Парсимо час з logId (формат: HHMMSS)
     const parseTime = (logId) => {
-      const timeStr = logId.slice(0, 6); // Беремо перші 6 символів
+      const timeStr = logId.slice(0, 6);
       const hours = parseInt(timeStr.slice(0, 2), 10);
       const minutes = parseInt(timeStr.slice(2, 4), 10);
       return { hours, minutes, timeStr };
     };
 
-    // Функція для визначення інтервалу
     const getTimeInterval = (hours, minutes) => {
       const totalMinutes = hours * 60 + minutes;
       const intervalMinutes = Math.floor(totalMinutes / timeInterval) * timeInterval;
@@ -183,7 +204,6 @@ export default function AnalyticsPage() {
       return `${intervalHours.toString().padStart(2, '0')}:${intervalMins.toString().padStart(2, '0')}`;
     };
 
-    // Групуємо по інтервалах
     const intervalData = {};
     
     filteredData.forEach(item => {
@@ -208,7 +228,6 @@ export default function AnalyticsPage() {
       }
     });
 
-    // Конвертуємо в масив і сортуємо
     const chartArray = Object.values(intervalData).sort((a, b) => 
       a.time.localeCompare(b.time)
     );
@@ -239,8 +258,8 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Карточка з інформацією про всі замовлення */}
-      <div className="analytics-date-card">
+      {/* Компактна карточка з інформацією про замовлення */}
+      <div className="analytics-date-card" style={{ marginBottom: '24px' }}>
         <div className="date-card-header">
           <ShoppingCart size={20} />
           <h3>Інформація про замовлення</h3>
@@ -255,24 +274,48 @@ export default function AnalyticsPage() {
               {ordersError}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-              {/* Всього замовлень */}
-              <div style={{ padding: '16px', backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px' }}>
-                <div style={{ fontSize: '14px', color: '#0c4a6e', fontWeight: '600', marginBottom: '8px' }}>
-                  Всього замовлень
-                </div>
-                <div style={{ fontSize: '28px', fontWeight: '700', color: '#0369a1' }}>
-                  {orderStats.totalOrders}
-                </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {/* Рядок зі статусами - компактна версія */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
+                {orderStats.byStatus.map((status) => (
+                  <div
+                    key={status.id}
+                    style={{
+                      padding: '12px 16px',
+                      backgroundColor: status.bgColor,
+                      border: `2px solid ${status.color}`,
+                      borderRadius: '8px',
+                      textAlign: 'center'
+                    }}
+                  >
+                    <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600', marginBottom: '6px', lineHeight: '1.3' }}>
+                      {status.name}
+                    </div>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: status.color }}>
+                      {status.count}
+                    </div>
+                  </div>
+                ))}
               </div>
-              
-              {/* Всього товарів */}
-              <div style={{ padding: '16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
-                <div style={{ fontSize: '14px', color: '#065f46', fontWeight: '600', marginBottom: '8px' }}>
-                  Кількість товару
+
+              {/* Рядок з загальною статистикою */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
+                <div style={{ padding: '12px 16px', backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '11px', color: '#0c4a6e', fontWeight: '600', marginBottom: '4px' }}>
+                    Всього замовлень
+                  </div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#0369a1' }}>
+                    {orderStats.totalOrders}
+                  </div>
                 </div>
-                <div style={{ fontSize: '28px', fontWeight: '700', color: '#059669' }}>
-                  {orderStats.totalProducts}
+                
+                <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '11px', color: '#065f46', fontWeight: '600', marginBottom: '4px' }}>
+                    Кількість товару
+                  </div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>
+                    {orderStats.totalProducts}
+                  </div>
                 </div>
               </div>
             </div>
