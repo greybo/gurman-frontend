@@ -19,7 +19,7 @@ export default function AnalyticsPage() {
   const [selectedDay, setSelectedDay] = useState(currentDay);
   const [availableMonths, setAvailableMonths] = useState([]);
   const [availableDays, setAvailableDays] = useState([]);
-  
+
   const [loggingData, setLoggingData] = useState({});
   const [users, setUsers] = useState([]);
   const [actions, setActions] = useState([]);
@@ -28,7 +28,7 @@ export default function AnalyticsPage() {
   const [timeInterval, setTimeInterval] = useState(60);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
-  
+
   // Стани для даних замовлень
   const [allOrdersData, setAllOrdersData] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
@@ -52,7 +52,7 @@ export default function AnalyticsPage() {
       if (snapshot.exists()) {
         const months = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
         setAvailableMonths(months);
-        
+
         if (months.length > 0 && !months.includes(selectedMonth)) {
           setSelectedMonth(months[0]);
         }
@@ -67,7 +67,7 @@ export default function AnalyticsPage() {
       if (snapshot.exists()) {
         const days = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
         setAvailableDays(days);
-        
+
         if (days.length > 0 && !days.includes(selectedDay)) {
           setSelectedDay(days[0]);
         }
@@ -81,15 +81,15 @@ export default function AnalyticsPage() {
 
     setLoading(true);
     const dayRef = ref(database, `${prefixPath}/logging_db/${selectedYear}/${selectedMonth}/${selectedDay}`);
-    
+
     onValue(dayRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         setLoggingData(data);
-        
+
         const uniqueUsers = [...new Set(Object.values(data).map(item => item.userId))].filter(Boolean);
         setUsers(uniqueUsers);
-        
+
         const uniqueActions = [...new Set(Object.values(data).map(item => item.actionName))].filter(Boolean);
         setActions(uniqueActions);
       } else {
@@ -111,10 +111,10 @@ export default function AnalyticsPage() {
     onValue(ordersRef, (snapshot) => {
       if (snapshot.exists()) {
         const ordersData = snapshot.val();
-        
+
         const ordersArray = Object.values(ordersData);
         setAllOrdersData(ordersArray);
-        
+
         // Ініціалізуємо статистику
         let totalProducts = 0;
         let totalOrders = 0;
@@ -125,10 +125,10 @@ export default function AnalyticsPage() {
           11: { orders: 0, products: 0 },
           24: { orders: 0, products: 0 }
         };
-        
+
         ordersArray.forEach(order => {
           totalOrders += 1;
-          
+
           // Сумуємо товари
           let orderProducts = 0;
           if (order.products && Array.isArray(order.products)) {
@@ -138,14 +138,14 @@ export default function AnalyticsPage() {
               totalProducts += amount;
             });
           }
-          
+
           // Підраховуємо по статусам
           if (order.statusId && Object.prototype.hasOwnProperty.call(statusCounts, order.statusId)) {
             statusCounts[order.statusId].orders += 1;
             statusCounts[order.statusId].products += orderProducts;
           }
         });
-        
+
         setOrderStats(prevStats => ({
           ...prevStats,
           totalOrders: totalOrders,
@@ -156,7 +156,7 @@ export default function AnalyticsPage() {
             productsCount: statusCounts[status.id].products
           }))
         }));
-        
+
         setOrdersError('');
       } else {
         setAllOrdersData([]);
@@ -208,16 +208,16 @@ export default function AnalyticsPage() {
       const intervalMinutes = Math.floor(totalMinutes / timeInterval) * timeInterval;
       const intervalHours = Math.floor(intervalMinutes / 60);
       const intervalMins = intervalMinutes % 60;
-      
+
       return `${intervalHours.toString().padStart(2, '0')}:${intervalMins.toString().padStart(2, '0')}`;
     };
 
     const intervalData = {};
-    
+
     filteredData.forEach(item => {
       const { hours, minutes } = parseTime(item.logId);
       const intervalKey = getTimeInterval(hours, minutes);
-      
+
       if (!intervalData[intervalKey]) {
         intervalData[intervalKey] = {
           time: intervalKey,
@@ -226,9 +226,9 @@ export default function AnalyticsPage() {
           total: 0
         };
       }
-      
+
       intervalData[intervalKey].total += 1;
-      
+
       if (item.scan?.success === true || item.scan?.success === 'true') {
         intervalData[intervalKey].successCount += 1;
       } else if (item.scan?.success === false || item.scan?.success === 'false') {
@@ -236,7 +236,7 @@ export default function AnalyticsPage() {
       }
     });
 
-    const chartArray = Object.values(intervalData).sort((a, b) => 
+    const chartArray = Object.values(intervalData).sort((a, b) =>
       a.time.localeCompare(b.time)
     );
 
@@ -283,7 +283,6 @@ export default function AnalyticsPage() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {/* Рядок зі статусами - компактна версія */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
                 {orderStats.byStatus.map((status) => (
                   <div
@@ -319,7 +318,7 @@ export default function AnalyticsPage() {
                     {orderStats.totalOrders}
                   </div>
                 </div>
-                
+
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', color: '#065f46', fontWeight: '600', marginBottom: '4px' }}>
                     Кількість товару
@@ -344,8 +343,8 @@ export default function AnalyticsPage() {
           <div className="date-row">
             <div className="date-field">
               <label>Місяць:</label>
-              <select 
-                value={selectedMonth} 
+              <select
+                value={selectedMonth}
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
                 className="date-select"
               >
@@ -358,8 +357,8 @@ export default function AnalyticsPage() {
             </div>
             <div className="date-field">
               <label>День:</label>
-              <select 
-                value={selectedDay} 
+              <select
+                value={selectedDay}
                 onChange={(e) => setSelectedDay(Number(e.target.value))}
                 className="date-select"
               >
@@ -383,8 +382,8 @@ export default function AnalyticsPage() {
               <User size={18} />
               Користувач
             </label>
-            <select 
-              value={selectedUser} 
+            <select
+              value={selectedUser}
               onChange={(e) => setSelectedUser(e.target.value)}
               className="filter-select"
             >
@@ -400,8 +399,8 @@ export default function AnalyticsPage() {
               <Activity size={18} />
               Дія
             </label>
-            <select 
-              value={selectedAction} 
+            <select
+              value={selectedAction}
               onChange={(e) => setSelectedAction(e.target.value)}
               className="filter-select"
             >
@@ -458,7 +457,7 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </div>
-        
+
         {loading ? (
           <div className="chart-loading">
             <div className="spinner"></div>
@@ -472,16 +471,16 @@ export default function AnalyticsPage() {
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis 
-                dataKey="time" 
+              <XAxis
+                dataKey="time"
                 stroke="#6b7280"
                 style={{ fontSize: '12px' }}
               />
-              <YAxis 
+              <YAxis
                 stroke="#6b7280"
                 style={{ fontSize: '12px' }}
               />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{
                   backgroundColor: 'white',
                   border: '1px solid #e5e7eb',
@@ -490,19 +489,19 @@ export default function AnalyticsPage() {
                 }}
               />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="successCount" 
-                stroke="#10b981" 
+              <Line
+                type="monotone"
+                dataKey="successCount"
+                stroke="#10b981"
                 strokeWidth={3}
                 name="Успішні"
                 dot={{ fill: '#10b981', r: 4 }}
                 activeDot={{ r: 6 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="failCount" 
-                stroke="#ef4444" 
+              <Line
+                type="monotone"
+                dataKey="failCount"
+                stroke="#ef4444"
                 strokeWidth={3}
                 name="Помилки"
                 dot={{ fill: '#ef4444', r: 4 }}

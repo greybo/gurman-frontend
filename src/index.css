@@ -379,6 +379,18 @@ body {
   .file-meta-item {
     font-size: 11px;
   }
+
+  .nav-container {
+    padding: 12px 16px;
+  }
+
+  .nav-title {
+    font-size: 18px;
+  }
+
+  .page-container {
+    padding: 16px 12px;
+  }
 }
 
 /* Hero Section */
@@ -974,48 +986,6 @@ td {
   font-size: 14px;
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-  .app-container {
-    padding: 20px 16px;
-  }
-
-  .upload-card,
-  .data-card {
-    padding: 24px;
-  }
-
-  .upload-title {
-    font-size: 24px;
-  }
-
-  .data-title {
-    font-size: 20px;
-  }
-
-  .upload-header,
-  .data-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .search-input {
-    width: 100%;
-  }
-
-  table {
-    font-size: 13px;
-  }
-
-  th, td {
-    padding: 10px 14px;
-  }
-
-  .upload-zone {
-    padding: 40px 24px;
-  }
-}
-
 /* Upload Actions */
 .upload-actions {
   margin-top: 24px;
@@ -1565,120 +1535,15 @@ td {
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 2px solid #e5e7eb;
-}
-
-.chart-header h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1d1d1f;
-  margin: 0;
-}
-
-.chart-legend-custom {
-  display: flex;
-  gap: 20px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #6b7280;
-}
-
-.legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.legend-dot.success {
-  background-color: #10b981;
-}
-
-.legend-dot.error {
-  background-color: #ef4444;
-}
-
-.chart-loading {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  color: #6b7280;
-  gap: 16px;
-}
-
-.chart-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 400px;
-  color: #9ca3af;
-  font-size: 16px;
-}
-
-@media (max-width: 768px) {
-  .date-row {
-    grid-template-columns: 1fr;
-  }
-
-  .filters-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .chart-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-
-  .chart-legend-custom {
-    flex-direction: column;
-    gap: 8px;
-  }
-}
-
-/* Scrollbar */
-.table-wrapper::-webkit-scrollbar {
-  height: 8px;
-}
-
-.table-wrapper::-webkit-scrollbar-track {
-  background: #f3f4f6;
-}
-
-.table-wrapper::-webkit-scrollbar-thumb {
-  background: #d1d5db;
-  border-radius: 4px;
-}
-
-.table-wrapper::-webkit-scrollbar-thumb:hover {
-  background: #9ca3af;
-}
-/* Додайте до вашого CSS файлу */
-
-.chart-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
   flex-wrap: wrap;
   gap: 15px;
 }
 
 .chart-header h3 {
-  margin: 0;
   font-size: 18px;
   font-weight: 600;
   color: #1f2937;
+  margin: 0;
 }
 
 .chart-controls {
@@ -1747,25 +1612,331 @@ td {
   background: #ef4444;
 }
 
-/* Responsive для мобільних пристроїв */
+.chart-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #6b7280;
+  gap: 16px;
+}
+
+.chart-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 400px;
+  color: #9ca3af;
+  font-size: 16px;
+}
+
+/* Scrollbar */
+.table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-wrapper::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* ========== MOBILE RESPONSIVE STYLES ========== */
+
 @media (max-width: 768px) {
+  /* Page container */
+  .page-container {
+    padding: 16px 12px;
+  }
+
+  /* Analytics header */
+  .analytics-header {
+    margin-bottom: 20px;
+  }
+
+  .analytics-title-section {
+    gap: 12px;
+  }
+
+  .analytics-title {
+    font-size: 24px;
+  }
+
+  .analytics-subtitle {
+    font-size: 14px;
+  }
+
+  /* Cards */
+  .analytics-date-card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .date-card-header {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    font-size: 16px;
+    gap: 8px;
+  }
+
+  .date-card-body {
+    gap: 12px;
+  }
+
+  .date-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .date-field label {
+    font-size: 12px;
+  }
+
+  .date-select {
+    padding: 10px;
+    font-size: 13px;
+  }
+
+  /* Filters */
+  .analytics-filters-card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .filters-header h3 {
+    font-size: 16px;
+  }
+
+  .filters-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .filter-label {
+    font-size: 13px;
+  }
+
+  .filter-select {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .stat-value {
+    font-size: 28px;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  /* Chart card */
+  .chart-card {
+    padding: 16px;
+  }
+
   .chart-header {
     flex-direction: column;
     align-items: flex-start;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    gap: 12px;
   }
-  
+
+  .chart-header h3 {
+    font-size: 16px;
+    width: 100%;
+  }
+
   .chart-controls {
     width: 100%;
-    justify-content: space-between;
+    flex-direction: column;
+    gap: 12px;
   }
-  
+
   .time-interval-buttons {
-    flex: 1;
+    width: 100%;
   }
-  
+
   .interval-button {
     flex: 1;
-    padding: 8px 12px;
-    font-size: 13px;
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .chart-legend-custom {
+    width: 100%;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .legend-item {
+    font-size: 12px;
+  }
+
+  .chart-loading,
+  .chart-empty {
+    height: 250px;
+    font-size: 14px;
+  }
+
+  /* Status boxes */
+  .status-box {
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+
+  .status-box-name {
+    font-size: 10px;
+    margin-bottom: 4px;
+  }
+
+  .status-box-count {
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+
+  .status-box-products {
+    font-size: 9px;
+  }
+
+  /* Summary boxes */
+  .summary-box {
+    padding: 10px 12px;
+  }
+
+  .summary-box-label {
+    font-size: 10px;
+    margin-bottom: 3px;
+  }
+
+  .summary-box-value {
+    font-size: 18px;
+  }
+
+  /* Nav */
+  .nav-container {
+    padding: 12px 16px;
+  }
+
+  .nav-title {
+    font-size: 16px;
+  }
+
+  .nav-links {
+    gap: 4px;
+  }
+
+  .nav-link {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  /* Login */
+  .login-card {
+    padding: 32px 20px;
+  }
+
+  .login-title {
+    font-size: 28px;
+  }
+
+  /* Upload */
+  .upload-card,
+  .data-card {
+    padding: 16px;
+  }
+
+  .upload-title {
+    font-size: 24px;
+  }
+
+  .data-title {
+    font-size: 18px;
+  }
+
+  .upload-zone {
+    padding: 32px 20px;
+  }
+
+  /* Table */
+  table {
+    font-size: 12px;
+  }
+
+  th, td {
+    padding: 10px 12px;
+  }
+
+  .search-input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-container {
+    padding: 12px 8px;
+  }
+
+  .analytics-title {
+    font-size: 20px;
+  }
+
+  .analytics-subtitle {
+    font-size: 12px;
+  }
+
+  .analytics-date-card {
+    padding: 12px;
+  }
+
+  .date-card-header {
+    font-size: 14px;
+    gap: 6px;
+  }
+
+  .chart-header h3 {
+    font-size: 14px;
+  }
+
+  .stat-value {
+    font-size: 24px;
+  }
+
+  .interval-button {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .legend-item {
+    font-size: 11px;
+  }
+
+  .nav-title {
+    font-size: 14px;
+  }
+
+  .nav-link {
+    padding: 4px 8px;
+    font-size: 11px;
   }
 }
