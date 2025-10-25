@@ -1,6 +1,6 @@
 // src/pages/FilesListPage.jsx
 import React, { useState, useEffect } from 'react';
-import { FileSpreadsheet, Search, Trash2, Calendar, Hash, Download } from 'lucide-react';
+import { FileSpreadsheet, Search, Trash2, Calendar, Hash, Download, X } from 'lucide-react';
 import  { API_URL } from '../config.js';
 
 export default function FilesListPage() {
@@ -84,12 +84,20 @@ export default function FilesListPage() {
     }
   };
 
-  // Фільтрація даних по пошуку
-  const filteredData = fileData?.rows?.filter(row =>
-    row.some(cell =>
-      cell?.toString().toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  ) || [];
+  // Функція для розбиття слів на складові частини
+  const splitIntoTokens = (text) => {
+    return text.toLowerCase().split(/\s+/).filter(token => token.length > 0);
+  };
+
+  // Розширена фільтрація даних по пошуку
+  const filteredData = fileData?.rows?.filter(row => {
+    if (!searchTerm.trim()) return true;
+    
+    const searchTokens = splitIntoTokens(searchTerm);
+    const rowText = row.join(' ').toLowerCase();
+    
+    return searchTokens.every(token => rowText.includes(token));
+  }) || [];
 
   // Форматування дати
   const formatDate = (timestamp) => {
@@ -219,6 +227,15 @@ export default function FilesListPage() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="search-input"
                   />
+                  {searchTerm && (
+                    <button
+                      className="search-clear-button"
+                      onClick={() => setSearchTerm('')}
+                      title="Очистити пошук"
+                    >
+                      <X size={18} />
+                    </button>
+                  )}
                 </div>
               </div>
 
