@@ -114,7 +114,7 @@ export default function AnalyticsPage() {
           }
         });
 
-        const scansCount = (statusCounts[2]?.o || 0) + (statusCounts[3]?.o || 0);
+        const scansCount = (statusCounts[2]?.p || 0) + (statusCounts[3]?.p || 0);
         setScansFromOrders(scansCount);
 
         setOrderStats(prev => ({
