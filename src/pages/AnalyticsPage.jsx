@@ -193,7 +193,7 @@ export default function AnalyticsPage() {
     }
 
     if (selectedAction !== 'all') {
-      filteredData = filteredData.filter(item => item.actionName === selectedAction);
+      filteredData = filteredData.filter(item => item.screen === selectedAction);
     }
 
     const parseTime = (logId) => {
@@ -229,9 +229,9 @@ export default function AnalyticsPage() {
 
       intervalData[intervalKey].total += 1;
 
-      if (item.scan?.success === true || item.scan?.success === 'true') {
+      if (item?.success === true || item?.success === 'true') {
         intervalData[intervalKey].successCount += 1;
-      } else if (item.scan?.success === false || item.scan?.success === 'false') {
+      } else if (item?.success === false || item?.success === 'false') {
         intervalData[intervalKey].failCount += 1;
       }
     });
