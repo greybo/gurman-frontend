@@ -8,7 +8,6 @@ import { BarChart2, Calendar as CalendarIcon, User, Activity, ShoppingCart } fro
 const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
 
 export default function AnalyticsPage() {
-  // Отримуємо поточну дату
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth() + 1;
@@ -29,7 +28,6 @@ export default function AnalyticsPage() {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Стани для даних замовлень
   const [allOrdersData, setAllOrdersData] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState('');
@@ -45,14 +43,12 @@ export default function AnalyticsPage() {
     ]
   });
 
-  // Завантаження місяців та днів
   useEffect(() => {
     const yearRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}`);
     onValue(yearRef, (snapshot) => {
       if (snapshot.exists()) {
         const months = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
         setAvailableMonths(months);
-
         if (months.length > 0 && !months.includes(selectedMonth)) {
           setSelectedMonth(months[0]);
         }
@@ -67,7 +63,6 @@ export default function AnalyticsPage() {
       if (snapshot.exists()) {
         const days = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
         setAvailableDays(days);
-
         if (days.length > 0 && !days.includes(selectedDay)) {
           setSelectedDay(days[0]);
         }
@@ -75,23 +70,16 @@ export default function AnalyticsPage() {
     }, { onlyOnce: true });
   }, [selectedYear, selectedMonth]);
 
-  // Завантаження даних логування
   useEffect(() => {
     if (!selectedDay || availableDays.length === 0) return;
-
     setLoading(true);
     const dayRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}/${selectedMonth}/${selectedDay}`);
-
     onValue(dayRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         setLoggingData(data);
-
-        const uniqueUsers = [...new Set(Object.values(data).map(item => item.userId))].filter(Boolean);
-        setUsers(uniqueUsers);
-
-        const uniqueActions = [...new Set(Object.values(data).map(item => item.screen))].filter(Boolean);
-        setActions(uniqueActions);
+        setUsers([...new Set(Object.values(data).map(item => item.userId))].filter(Boolean));
+        setActions([...new Set(Object.values(data).map(item => item.screen))].filter(Boolean));
       } else {
         setLoggingData({});
         setUsers([]);
@@ -101,147 +89,114 @@ export default function AnalyticsPage() {
     }, { onlyOnce: true });
   }, [selectedYear, selectedMonth, selectedDay, availableDays]);
 
-  // Завантаження даних всіх замовлень
   useEffect(() => {
     setOrdersLoading(true);
-    setOrdersError('');
-
     const ordersRef = ref(database, `${prefixPath}/orders_DB_V3`);
-
     onValue(ordersRef, (snapshot) => {
       if (snapshot.exists()) {
-        const ordersData = snapshot.val();
-
-        const ordersArray = Object.values(ordersData);
+        const ordersArray = Object.values(snapshot.val());
         setAllOrdersData(ordersArray);
-
-        // Ініціалізуємо статистику
         let totalProducts = 0;
-        let totalOrders = 0;
-        const statusCounts = {
-          2: { orders: 0, products: 0 },
-          3: { orders: 0, products: 0 },
-          13: { orders: 0, products: 0 },
-          11: { orders: 0, products: 0 },
-          24: { orders: 0, products: 0 }
-        };
-
+        const statusCounts = { 2: { o: 0, p: 0 }, 3: { o: 0, p: 0 }, 13: { o: 0, p: 0 }, 11: { o: 0, p: 0 }, 24: { o: 0, p: 0 } };
         ordersArray.forEach(order => {
-          totalOrders += 1;
-
-          // Сумуємо товари
           let orderProducts = 0;
           if (order.products && Array.isArray(order.products)) {
-            order.products.forEach(product => {
-              const amount = product.amount || 0;
-              orderProducts += amount;
-              totalProducts += amount;
-            });
+            orderProducts = order.products.reduce((sum, product) => sum + (product.amount || 0), 0);
+            totalProducts += orderProducts;
           }
-
-          // Підраховуємо по статусам
-          if (order.statusId && Object.prototype.hasOwnProperty.call(statusCounts, order.statusId)) {
-            statusCounts[order.statusId].orders += 1;
-            statusCounts[order.statusId].products += orderProducts;
+          if (order.statusId && statusCounts[order.statusId]) {
+            statusCounts[order.statusId].o += 1;
+            statusCounts[order.statusId].p += orderProducts;
           }
         });
-
-        setOrderStats(prevStats => ({
-          ...prevStats,
-          totalOrders: totalOrders,
-          totalProducts: totalProducts,
-          byStatus: prevStats.byStatus.map(status => ({
-            ...status,
-            count: statusCounts[status.id].orders,
-            productsCount: statusCounts[status.id].products
-          }))
+        setOrderStats(prev => ({
+          totalOrders: ordersArray.length,
+          totalProducts,
+          byStatus: prev.byStatus.map(s => ({ ...s, count: statusCounts[s.id].o, productsCount: statusCounts[s.id].p }))
         }));
-
         setOrdersError('');
       } else {
         setAllOrdersData([]);
-        setOrderStats(prevStats => ({
-          ...prevStats,
-          totalOrders: 0,
-          totalProducts: 0,
-          byStatus: prevStats.byStatus.map(status => ({
-            ...status,
-            count: 0,
-            productsCount: 0
-          }))
-        }));
+        setOrderStats(prev => ({ totalOrders: 0, totalProducts: 0, byStatus: prev.byStatus.map(s => ({ ...s, count: 0, productsCount: 0 })) }));
         setOrdersError('Замовлень не знайдено');
       }
       setOrdersLoading(false);
     }, { onlyOnce: true });
   }, []);
 
-  // Обробка даних для графіка
   useEffect(() => {
-    if (Object.keys(loggingData).length === 0) {
+    let filteredEntries = Object.entries(loggingData);
+
+    if (selectedUser !== 'all') {
+      filteredEntries = filteredEntries.filter(([, data]) => data.userId === selectedUser);
+    }
+    if (selectedAction !== 'all') {
+      filteredEntries = filteredEntries.filter(([, data]) => data.screen === selectedAction);
+    }
+
+    if (filteredEntries.length === 0) {
       setChartData([]);
       return;
     }
 
-    let filteredData = Object.entries(loggingData).map(([logId, data]) => ({
-      logId,
-      ...data
-    }));
-
-    if (selectedUser !== 'all') {
-      filteredData = filteredData.filter(item => item.userId === selectedUser);
-    }
-
-    if (selectedAction !== 'all') {
-      filteredData = filteredData.filter(item => item.screen === selectedAction);
-    }
-
-    const parseTime = (logId) => {
-      const timeStr = logId.slice(0, 6);
+    const getTotalMinutes = (logId) => {
+      const timeStr = String(logId).padStart(6, '0');
       const hours = parseInt(timeStr.slice(0, 2), 10);
       const minutes = parseInt(timeStr.slice(2, 4), 10);
-      return { hours, minutes, timeStr };
+      return isNaN(hours) || isNaN(minutes) ? null : hours * 60 + minutes;
     };
 
-    const getTimeInterval = (hours, minutes) => {
-      const totalMinutes = hours * 60 + minutes;
-      const intervalMinutes = Math.floor(totalMinutes / timeInterval) * timeInterval;
-      const intervalHours = Math.floor(intervalMinutes / 60);
-      const intervalMins = intervalMinutes % 60;
+    let minTotalMinutes = Infinity;
+    let maxTotalMinutes = -Infinity;
 
-      return `${intervalHours.toString().padStart(2, '0')}:${intervalMins.toString().padStart(2, '0')}`;
-    };
-
-    const intervalData = {};
-
-    filteredData.forEach(item => {
-      const { hours, minutes } = parseTime(item.logId);
-      const intervalKey = getTimeInterval(hours, minutes);
-
-      if (!intervalData[intervalKey]) {
-        intervalData[intervalKey] = {
-          time: intervalKey,
-          successCount: 0,
-          failCount: 0,
-          total: 0
-        };
-      }
-
-      intervalData[intervalKey].total += 1;
-
-      if (item?.success === true || item?.success === 'true') {
-        intervalData[intervalKey].successCount += 1;
-      } else if (item?.success === false || item?.success === 'false') {
-        intervalData[intervalKey].failCount += 1;
+    filteredEntries.forEach(([logId]) => {
+      const currentMinutes = getTotalMinutes(logId);
+      if (currentMinutes !== null) {
+        if (currentMinutes < minTotalMinutes) minTotalMinutes = currentMinutes;
+        if (currentMinutes > maxTotalMinutes) maxTotalMinutes = currentMinutes;
       }
     });
 
-    const chartArray = Object.values(intervalData).sort((a, b) =>
-      a.time.localeCompare(b.time)
-    );
+    if (minTotalMinutes === Infinity) {
+      setChartData([]);
+      return;
+    }
 
-    setChartData(chartArray);
+    const intervalData = {};
+    const startMinute = Math.floor(minTotalMinutes / timeInterval) * timeInterval;
+    const endMinute = Math.floor(maxTotalMinutes / timeInterval) * timeInterval;
+
+    for (let i = startMinute; i <= endMinute; i += timeInterval) {
+      const intervalHours = Math.floor(i / 60);
+      const intervalMins = i % 60;
+      const intervalKey = `${String(intervalHours).padStart(2, '0')}:${String(intervalMins).padStart(2, '0')}`;
+      intervalData[intervalKey] = { time: intervalKey, successCount: 0, failCount: 0, total: 0 };
+    }
+
+    const getTimeIntervalKey = (logId) => {
+      const totalMinutes = getTotalMinutes(logId);
+      if (totalMinutes === null) return null;
+      const intervalMinutes = Math.floor(totalMinutes / timeInterval) * timeInterval;
+      const intervalHours = Math.floor(intervalMinutes / 60);
+      const intervalMins = intervalMinutes % 60;
+      return `${String(intervalHours).padStart(2, '0')}:${String(intervalMins).padStart(2, '0')}`;
+    };
+
+    filteredEntries.forEach(([logId, item]) => {
+      const intervalKey = getTimeIntervalKey(logId);
+      if (intervalKey && intervalData[intervalKey]) {
+        intervalData[intervalKey].total += 1;
+        if (item.success === true || item.success === 'true') {
+          intervalData[intervalKey].successCount += 1;
+        } else {
+          intervalData[intervalKey].failCount += 1;
+        }
+      }
+    });
+
+    setChartData(Object.values(intervalData));
   }, [loggingData, selectedUser, selectedAction, timeInterval]);
+
 
   const monthNames = [
     'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
@@ -266,7 +221,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Компактна карточка з інформацією про замовлення */}
       <div className="analytics-date-card" style={{ marginBottom: '24px' }}>
         <div className="date-card-header">
           <ShoppingCart size={20} />
@@ -274,58 +228,28 @@ export default function AnalyticsPage() {
         </div>
         <div className="date-card-body">
           {ordersLoading ? (
-            <div style={{ padding: '12px', backgroundColor: '#dbeafe', color: '#1e40af', borderRadius: '6px', textAlign: 'center' }}>
-              Завантаження даних замовлень...
-            </div>
+            <div style={{ padding: '12px', textAlign: 'center' }}>Завантаження даних замовлень...</div>
           ) : ordersError ? (
-            <div style={{ padding: '12px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', textAlign: 'center' }}>
-              {ordersError}
-            </div>
+            <div style={{ padding: '12px', textAlign: 'center' }}>{ordersError}</div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
                 {orderStats.byStatus.map((status) => (
-                  <div
-                    key={status.id}
-                    style={{
-                      padding: '12px 16px',
-                      backgroundColor: status.bgColor,
-                      border: `2px solid ${status.color}`,
-                      borderRadius: '8px',
-                      textAlign: 'center'
-                    }}
-                  >
-                    <div style={{ fontSize: '11px', color: '#6b7280', fontWeight: '600', marginBottom: '6px', lineHeight: '1.3' }}>
-                      {status.name}
-                    </div>
-                    <div style={{ fontSize: '22px', fontWeight: '700', color: status.color, marginBottom: '4px' }}>
-                      {status.count}
-                    </div>
-                    <div style={{ fontSize: '10px', color: '#9ca3af', fontWeight: '500' }}>
-                      товарів: {status.productsCount}
-                    </div>
+                  <div key={status.id} style={{ padding: '12px 16px', backgroundColor: status.bgColor, border: `2px solid ${status.color}`, borderRadius: '8px', textAlign: 'center' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '600' }}>{status.name}</div>
+                    <div style={{ fontSize: '22px', fontWeight: '700', color: status.color }}>{status.count}</div>
+                    <div style={{ fontSize: '10px' }}>товарів: {status.productsCount}</div>
                   </div>
                 ))}
               </div>
-
-              {/* Рядок з загальною статистикою */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', color: '#0c4a6e', fontWeight: '600', marginBottom: '4px' }}>
-                    Всього замовлень
-                  </div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#0369a1' }}>
-                    {orderStats.totalOrders}
-                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: '600' }}>Всього замовлень</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#0369a1' }}>{orderStats.totalOrders}</div>
                 </div>
-
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', color: '#065f46', fontWeight: '600', marginBottom: '4px' }}>
-                    Кількість товару
-                  </div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>
-                    {orderStats.totalProducts}
-                  </div>
+                  <div style={{ fontSize: '11px', fontWeight: '600' }}>Кількість товару</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{orderStats.totalProducts}</div>
                 </div>
               </div>
             </div>
@@ -333,7 +257,6 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Вибір дати */}
       <div className="analytics-date-card">
         <div className="date-card-header">
           <CalendarIcon size={20} />
@@ -343,77 +266,40 @@ export default function AnalyticsPage() {
           <div className="date-row">
             <div className="date-field">
               <label>Місяць:</label>
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="date-select"
-              >
-                {availableMonths.map(month => (
-                  <option key={month} value={month}>
-                    {monthNames[month - 1]}
-                  </option>
-                ))}
+              <select value={selectedMonth} onChange={(e) => setSelectedMonth(Number(e.target.value))} className="date-select">
+                {availableMonths.map(month => <option key={month} value={month}>{monthNames[month - 1]}</option>)}
               </select>
             </div>
             <div className="date-field">
               <label>День:</label>
-              <select
-                value={selectedDay}
-                onChange={(e) => setSelectedDay(Number(e.target.value))}
-                className="date-select"
-              >
-                {availableDays.map(day => (
-                  <option key={day} value={day}>{day}</option>
-                ))}
+              <select value={selectedDay} onChange={(e) => setSelectedDay(Number(e.target.value))} className="date-select">
+                {availableDays.map(day => <option key={day} value={day}>{day}</option>)}
               </select>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Фільтри */}
       <div className="analytics-filters-card">
-        <div className="filters-header">
-          <h3>Фільтри</h3>
-        </div>
+        <div className="filters-header"><h3>Фільтри</h3></div>
         <div className="filters-grid">
           <div className="filter-group">
-            <label className="filter-label">
-              <User size={18} />
-              Користувач
-            </label>
-            <select
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              className="filter-select"
-            >
+            <label className="filter-label"><User size={18} />Користувач</label>
+            <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} className="filter-select">
               <option value="all">Всі користувачі</option>
-              {users.map(user => (
-                <option key={user} value={user}>{user}</option>
-              ))}
+              {users.map(user => <option key={user} value={user}>{user}</option>)}
             </select>
           </div>
-
           <div className="filter-group">
-            <label className="filter-label">
-              <Activity size={18} />
-              Дія
-            </label>
-            <select
-              value={selectedAction}
-              onChange={(e) => setSelectedAction(e.target.value)}
-              className="filter-select"
-            >
+            <label className="filter-label"><Activity size={18} />Дія</label>
+            <select value={selectedAction} onChange={(e) => setSelectedAction(e.target.value)} className="filter-select">
               <option value="all">Всі дії</option>
-              {actions.map(action => (
-                <option key={action} value={action}>{action}</option>
-              ))}
+              {actions.map(action => <option key={action} value={action}>{action}</option>)}
             </select>
           </div>
         </div>
       </div>
 
-      {/* Статистика */}
       <div className="stats-grid">
         <div className="stat-card success">
           <div className="stat-value">{chartData.reduce((sum, item) => sum + item.successCount, 0)}</div>
@@ -429,84 +315,33 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* График */}
       <div className="chart-card">
         <div className="chart-header">
           <h3>Графік активності</h3>
           <div className="chart-controls">
             <div className="time-interval-buttons">
               {timeIntervals.map(interval => (
-                <button
-                  key={interval.value}
-                  className={`interval-button ${timeInterval === interval.value ? 'active' : ''}`}
-                  onClick={() => setTimeInterval(interval.value)}
-                >
+                <button key={interval.value} className={`interval-button ${timeInterval === interval.value ? 'active' : ''}`} onClick={() => setTimeInterval(interval.value)}>
                   {interval.label}
                 </button>
               ))}
             </div>
-            <div className="chart-legend-custom">
-              <div className="legend-item">
-                <span className="legend-dot success"></span>
-                <span>Успішні</span>
-              </div>
-              <div className="legend-item">
-                <span className="legend-dot error"></span>
-                <span>Помилки</span>
-              </div>
-            </div>
           </div>
         </div>
-
         {loading ? (
-          <div className="chart-loading">
-            <div className="spinner"></div>
-            <p>Завантаження даних...</p>
-          </div>
+          <div className="chart-loading"><div className="spinner"></div><p>Завантаження даних...</p></div>
         ) : chartData.length === 0 ? (
-          <div className="chart-empty">
-            <p>Немає даних для відображення</p>
-          </div>
+          <div className="chart-empty"><p>Немає даних для відображення</p></div>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
             <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis
-                dataKey="time"
-                stroke="#6b7280"
-                style={{ fontSize: '12px' }}
-              />
-              <YAxis
-                stroke="#6b7280"
-                style={{ fontSize: '12px' }}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'white',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
-                }}
-              />
+              <XAxis dataKey="time" stroke="#6b7280" style={{ fontSize: '12px' }} interval="preserveStartEnd" />
+              <YAxis stroke="#6b7280" style={{ fontSize: '12px' }} />
+              <Tooltip contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }} />
               <Legend />
-              <Line
-                type="monotone"
-                dataKey="successCount"
-                stroke="#10b981"
-                strokeWidth={3}
-                name="Успішні"
-                dot={{ fill: '#10b981', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="failCount"
-                stroke="#ef4444"
-                strokeWidth={3}
-                name="Помилки"
-                dot={{ fill: '#ef4444', r: 4 }}
-                activeDot={{ r: 6 }}
-              />
+              <Line type="monotone" dataKey="successCount" name="Успішні" stroke="#10b981" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="failCount" name="Помилки" stroke="#ef4444" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         )}
