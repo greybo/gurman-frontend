@@ -31,6 +31,8 @@ export default function AnalyticsPage() {
   const [allOrdersData, setAllOrdersData] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState('');
+  // Зберігаємо кількість сканів тільки зі статусів замовлень
+  const [scansFromOrders, setScansFromOrders] = useState(0);
   const [orderStats, setOrderStats] = useState({
     totalOrders: 0,
     totalProducts: 0,
@@ -96,8 +98,10 @@ export default function AnalyticsPage() {
       if (snapshot.exists()) {
         const ordersArray = Object.values(snapshot.val());
         setAllOrdersData(ordersArray);
+
         let totalProducts = 0;
         const statusCounts = { 2: { o: 0, p: 0 }, 3: { o: 0, p: 0 }, 13: { o: 0, p: 0 }, 11: { o: 0, p: 0 }, 24: { o: 0, p: 0 } };
+
         ordersArray.forEach(order => {
           let orderProducts = 0;
           if (order.products && Array.isArray(order.products)) {
@@ -109,6 +113,10 @@ export default function AnalyticsPage() {
             statusCounts[order.statusId].p += orderProducts;
           }
         });
+
+        const scansCount = (statusCounts[2]?.o || 0) + (statusCounts[3]?.o || 0);
+        setScansFromOrders(scansCount);
+
         setOrderStats(prev => ({
           totalOrders: ordersArray.length,
           totalProducts,
@@ -119,6 +127,7 @@ export default function AnalyticsPage() {
         setAllOrdersData([]);
         setOrderStats(prev => ({ totalOrders: 0, totalProducts: 0, byStatus: prev.byStatus.map(s => ({ ...s, count: 0, productsCount: 0 })) }));
         setOrdersError('Замовлень не знайдено');
+        setScansFromOrders(0);
       }
       setOrdersLoading(false);
     }, { onlyOnce: true });
@@ -197,7 +206,6 @@ export default function AnalyticsPage() {
     setChartData(Object.values(intervalData));
   }, [loggingData, selectedUser, selectedAction, timeInterval]);
 
-
   const monthNames = [
     'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
     'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
@@ -208,6 +216,10 @@ export default function AnalyticsPage() {
     { value: 30, label: '30 хв' },
     { value: 60, label: '1 год' }
   ];
+
+  // Обчислюємо загальну кількість сканів перед рендерингом
+  const successScansFromLogs = chartData.reduce((sum, item) => sum + item.successCount, 0);
+  const totalScansToDisplay = scansFromOrders + successScansFromLogs;
 
   return (
     <div className="page-container">
@@ -244,12 +256,16 @@ export default function AnalyticsPage() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '600' }}>Всього замовлень</div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Всього замовлень</div>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#0369a1' }}>{orderStats.totalOrders}</div>
                 </div>
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '600' }}>Кількість товару</div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Кількість товару</div>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{orderStats.totalProducts}</div>
+                </div>
+                <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', border: '2px solid #9333ea', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#7e22ce' }}>{totalScansToDisplay}</div>
                 </div>
               </div>
             </div>
@@ -302,7 +318,7 @@ export default function AnalyticsPage() {
 
       <div className="stats-grid">
         <div className="stat-card success">
-          <div className="stat-value">{chartData.reduce((sum, item) => sum + item.successCount, 0)}</div>
+          <div className="stat-value">{successScansFromLogs}</div>
           <div className="stat-label">Успішних</div>
         </div>
         <div className="stat-card error">
