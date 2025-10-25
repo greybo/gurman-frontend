@@ -90,7 +90,7 @@ export default function AnalyticsPage() {
         const uniqueUsers = [...new Set(Object.values(data).map(item => item.userId))].filter(Boolean);
         setUsers(uniqueUsers);
 
-        const uniqueActions = [...new Set(Object.values(data).map(item => item.actionName))].filter(Boolean);
+        const uniqueActions = [...new Set(Object.values(data).map(item => item.screen))].filter(Boolean);
         setActions(uniqueActions);
       } else {
         setLoggingData({});
