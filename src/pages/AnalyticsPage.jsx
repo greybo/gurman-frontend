@@ -23,7 +23,7 @@ export default function AnalyticsPage() {
   const [users, setUsers] = useState([]);
   const [actions, setActions] = useState([]);
   const [selectedUser, setSelectedUser] = useState('all');
-  const [selectedAction, setSelectedAction] = useState('all');
+  const [selectedAction, setSelectedAction] = useState('OrderPackaging');
   const [timeInterval, setTimeInterval] = useState(60);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
