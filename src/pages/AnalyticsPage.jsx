@@ -260,13 +260,13 @@ export default function AnalyticsPage() {
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#0369a1' }}>{orderStats.totalOrders}</div>
                 </div>
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Кількість товару</div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{orderStats.totalProducts}</div>
                 </div>
-                <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', border: '2px solid #9333ea', borderRadius: '8px' }}>
+                {/* <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', border: '2px solid #9333ea', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#7e22ce' }}>{totalScansToDisplay}</div>
-                </div>
+                </div> */}
               </div>
             </div>
           )}
