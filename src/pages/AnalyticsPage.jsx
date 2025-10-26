@@ -153,7 +153,7 @@ export default function AnalyticsPage() {
             if (param) {
               let productVolume = 0.0;
               if (param.width && param.length && param.height) {
-                productVolume = ((param.width / 100) * (param.length / 100) * (param.height / 100)) * (product.amount || 0);
+                productVolume = ((param.width / 1000) * (param.length / 1000) * (param.height / 1000)) * (product.amount || 0);
               }
               totalWeight += (param.weight / 100 || 0.0) * (product.amount || 0);
               totalVolume += productVolume;
