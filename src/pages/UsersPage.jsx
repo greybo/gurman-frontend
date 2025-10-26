@@ -70,10 +70,11 @@ export default function UsersPage() {
     setIsSaving(true);
     
     const userToSave = users[selectedUserId];
-    const userRef = ref(database, `${prefixPath}/tg_user_db/${selectedUserId}`);
-    
+    const userRef = ref(database, `${prefixPath}/user_db_v2/${selectedUserId}`);
+
     try {
       await update(userRef, {
+        objectId: userToSave.objectId || 'n/a',
         name: userToSave.name || 'n/a',
         addedToList: userToSave.addedToList || false,
         sendErrorMessage: userToSave.sendErrorMessage || false,
@@ -81,6 +82,7 @@ export default function UsersPage() {
         orderAll: userToSave.orderAll || false,
         volumeAndParams: userToSave.volumeAndParams || false,
         searchCode: userToSave.searchCode || false,
+        email: userToSave.email || 'n/a',
       });
     } catch (err) {
       console.error('Помилка збереження:', err);
@@ -231,7 +233,12 @@ export default function UsersPage() {
                       onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
                       placeholder="n/a"
                       className="form-input"
+                      disabled={true}
                     />
+                  </div>
+                  <div className="form-group-flex">
+                    <label className="form-label"><Mail size={18} /> Email</label>
+                    <p className="form-static-text">{selectedUser.email || 'n/a'}</p>
                   </div>
                   <div className="form-group-flex">
                     <label className="form-label"><Hash size={18} /> Chat ID</label>
@@ -248,6 +255,7 @@ export default function UsersPage() {
                       checked={!!selectedUser.addedToList}
                       onChange={(e) => handleCheckboxChange(selectedUserId, 'addedToList', e.target.checked)}
                       style={checkboxStyle}
+                      disabled={true}   
                     />
                     <CheckCircle /> Added to List
                   </label>
@@ -258,6 +266,7 @@ export default function UsersPage() {
                       checked={!!selectedUser.sendErrorMessage}
                       onChange={(e) => handleCheckboxChange(selectedUserId, 'sendErrorMessage', e.target.checked)}
                       style={checkboxStyle}
+                      disabled={true}   
                     />
                     <AlertTriangle /> Send Error Msg
                   </label>
