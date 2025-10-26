@@ -33,7 +33,7 @@ function Navigation() {
           <div className="nav-container">
             <div className="nav-brand">
               <FileSpreadsheet className="nav-logo" />
-              <span className="nav-title">Gurman App</span>
+              <span className="nav-title">Gurman</span>
             </div>
             <div className="nav-links">
               {/* <Link
