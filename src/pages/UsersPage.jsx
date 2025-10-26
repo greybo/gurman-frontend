@@ -80,18 +80,18 @@ export default function UsersPage() {
         //   return firebase.database().ref().update(updates);
 
 
-        
+
         // 1. Отримуємо посилання на список, куди хочемо додати дані
         const dbRef = ref(database, 'release/user_db_v2');
         // 2. Викликаємо push(). Це створює новий вузол з унікальним ID
         //    і повертає посилання на нього.
         const userRef = push(dbRef);
-        
+
         // 3. (Опційно) Ви можете отримати згенерований ключ, якщо він потрібен
         const newKey = userRef.key;
         console.info(`Saving user with new key: ${newKey}`);
-        
-        
+
+
         // const userRef = ref(database, `${prefixPath}/user_db_v2/${selectedUserId}`);
 
         // const userRef = ref(database, `${prefixPath}/user_db_v2/${newKey}`);
@@ -99,6 +99,7 @@ export default function UsersPage() {
         try {
             await update(userRef, {
                 objectId: newKey || 'n/a',
+                chatId: userToSave.chatId || 0,
                 UID: userToSave.UID || 'n/a',
                 email: userToSave.email || 'n/a',
                 name: userToSave.name || 'n/a',
@@ -263,7 +264,15 @@ export default function UsersPage() {
                                     </div>
                                     <div className="form-group-flex">
                                         <label className="form-label"><Mail size={18} /> Email</label>
-                                        <p className="form-static-text">{selectedUser.email || 'n/a'}</p>
+                                        {/* <p className="form-static-text">{selectedUser.email || 'n/a'}</p> */}
+                                        <input
+                                            type="text"
+                                            value={selectedUser.email || ''}
+                                            onChange={(e) => handleInputChange(selectedUserId, 'email', e.target.value)}
+                                            placeholder="n/a"
+                                            className="form-input"
+                                            disabled={false}
+                                        />
                                     </div>
                                     <div className="form-group-flex">
                                         <label className="form-label"><Hash size={18} /> Chat ID</label>
