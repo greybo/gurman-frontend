@@ -29,6 +29,7 @@ export default function AnalyticsPage() {
   const [loading, setLoading] = useState(false);
 
   const [allOrdersData, setAllOrdersData] = useState([]);
+  const [paramsData, setAllParamsData] = useState({});
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState('');
   // Зберігаємо кількість сканів тільки зі статусів замовлень
@@ -36,6 +37,8 @@ export default function AnalyticsPage() {
   const [orderStats, setOrderStats] = useState({
     totalOrders: 0,
     totalProducts: 0,
+    totalWeight: '0',
+    totalVolume: '0',
     byStatus: [
       { id: 2, name: 'Підтверджено', count: 0, productsCount: 0, color: '#ffea00ff', bgColor: '#fffbeb' },
       { id: 3, name: 'На відправку', count: 0, productsCount: 0, color: '#FF9800', bgColor: '#fffbeb' },
@@ -132,6 +135,44 @@ export default function AnalyticsPage() {
       setOrdersLoading(false);
     }, { onlyOnce: true });
   }, []);
+
+  useEffect(() => {
+    // setOrdersLoading(true);
+    if (!allOrdersData || allOrdersData.length === 0) return;
+
+    const paramsRef = ref(database, `${prefixPath}/placement_db`);
+    onValue(paramsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const paramsArray = Object.values(snapshot.val());
+
+        let totalWeight = 0.0;
+        let totalVolume = 0.0;
+        allOrdersData.forEach(order => {
+          order.products.forEach(product => {
+            const param = paramsArray.find(p => p.productId === product.parameterProductId);
+            if (param) {
+              let productVolume = 0.0;
+              if (param.width && param.length && param.height) {
+                productVolume = ((param.width / 100) * (param.length / 100) * (param.height / 100)) * (product.amount || 0);
+              }
+              totalWeight += (param.weight / 100 || 0.0) * (product.amount || 0);
+              totalVolume += productVolume;
+            }
+          });
+        });
+
+        setAllParamsData(prev => ({
+          totalWeight: `${totalWeight.toFixed(2)} кг`,
+          totalVolume: `${totalVolume.toFixed(3)} м³`,
+        }));
+
+        setOrdersError('');
+      } else {
+        setOrdersError('Параметри не знайдено');
+      }
+      // setOrdersLoading(false);
+    }, { onlyOnce: true });
+  }, [allOrdersData]);
 
   useEffect(() => {
     let filteredEntries = Object.entries(loggingData);
@@ -246,13 +287,13 @@ export default function AnalyticsPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
-                {orderStats.byStatus.map((status) => (
+                {/* {orderStats.byStatus.map((status) => (
                   <div key={status.id} style={{ padding: '12px 16px', backgroundColor: status.bgColor, border: `2px solid ${status.color}`, borderRadius: '8px', textAlign: 'center' }}>
                     <div style={{ fontSize: '11px', fontWeight: '600' }}>{status.name}</div>
                     <div style={{ fontSize: '22px', fontWeight: '700', color: status.color }}>{status.count}</div>
                     <div style={{ fontSize: '10px' }}>товарів: {status.productsCount}</div>
                   </div>
-                ))}
+                ))} */}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px' }}>
@@ -262,6 +303,14 @@ export default function AnalyticsPage() {
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{orderStats.totalProducts}</div>
+                </div>
+                <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Вага</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{paramsData.totalWeight}</div>
+                </div>
+                <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Об'єм</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{paramsData.totalVolume}</div>
                 </div>
                 {/* <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', border: '2px solid #9333ea', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
