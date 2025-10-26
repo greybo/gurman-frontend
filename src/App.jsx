@@ -10,6 +10,7 @@ import HomePage from './pages/HomePage';
 import FilesListPage from './pages/FilesListPage';
 import LoginPage from './pages/LoginPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import UsersPage from './pages/UsersPage'; // <-- 1. ІМПОРТ НОВОЇ СТОРІНКИ
 
 function Navigation() {
   const location = useLocation();
@@ -63,6 +64,16 @@ function Navigation() {
                 <FolderOpen size={18} />
                 Мої файли
               </Link>
+              
+              {/* 2. ДОДАНО ЛІНК НА НОВУ СТОРІНКУ */}
+              <Link
+                to="/users"
+                className={`nav-link ${isActive('/users') ? 'active' : ''}`}
+              >
+                <User size={18} />
+                TG Користувачі
+              </Link>
+
               {/* <Link
                 to="/test"
                 className={`nav-link ${isActive('/test') ? 'active' : ''}`}
@@ -124,6 +135,17 @@ function AppRoutes() {
             </PrivateRoute>
           }
         />
+
+        {/* 3. ДОДАНО РОУТ ДЛЯ НОВОЇ СТОРІНКИ */}
+        <Route
+          path="/users"
+          element={
+            <PrivateRoute>
+              <UsersPage />
+            </PrivateRoute>
+          }
+        />
+        
         <Route
           path="/test"
           element={
