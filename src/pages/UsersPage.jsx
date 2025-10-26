@@ -4,7 +4,7 @@ import { database } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import { 
   Users, Hash, CheckCircle, AlertTriangle, Save, RefreshCw, 
-  Mail, FileText, Package, Boxes, SearchCode 
+  Mail, FileText, Package, Boxes, SearchCode, UserCheck 
 } from 'lucide-react';
 
 // Використовуємо той самий префікс, що й в AnalyticsPage
@@ -14,7 +14,8 @@ export default function UsersPage() {
   const [users, setUsers] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isSaving, setIsSaving] = useState({});
+  const [isSaving, setIsSaving] = useState(false); // Тепер це один прапорець
+  const [selectedUserId, setSelectedUserId] = useState(null); // ID вибраного користувача
 
   const fetchUsers = () => {
     setLoading(true);
@@ -41,6 +42,7 @@ export default function UsersPage() {
     fetchUsers();
   }, []);
 
+  // Обробники, як і раніше, змінюють загальний стан 'users'
   const handleInputChange = (chatId, field, value) => {
     setUsers(prevUsers => ({
       ...prevUsers,
@@ -61,45 +63,47 @@ export default function UsersPage() {
     }));
   };
 
-  const handleSave = async (chatId) => {
-    setIsSaving(prev => ({ ...prev, [chatId]: true }));
+  // Збереження працює для вибраного користувача
+  const handleSave = async () => {
+    if (!selectedUserId) return;
+
+    setIsSaving(true);
     
-    const userToSave = users[chatId];
-    const userRef = ref(database, `${prefixPath}/tg_user_db/${chatId}`);
+    const userToSave = users[selectedUserId];
+    const userRef = ref(database, `${prefixPath}/tg_user_db/${selectedUserId}`);
     
     try {
-      // Оновлюємо всі поля, які редагуються
       await update(userRef, {
         name: userToSave.name || 'n/a',
         addedToList: userToSave.addedToList || false,
         sendErrorMessage: userToSave.sendErrorMessage || false,
-        // Додаємо нові поля до збереження
         invoice: userToSave.invoice || false,
         orderAll: userToSave.orderAll || false,
         volumeAndParams: userToSave.volumeAndParams || false,
         searchCode: userToSave.searchCode || false,
-        // email не зберігаємо, оскільки він не редагується
       });
     } catch (err) {
       console.error('Помилка збереження:', err);
-      alert(`Помилка збереження для ${chatId}`);
+      alert(`Помилка збереження для ${selectedUserId}`);
     } finally {
-      setIsSaving(prev => ({ ...prev, [chatId]: false }));
+      setIsSaving(false);
     }
   };
 
   const usersList = Object.entries(users);
+  const selectedUser = selectedUserId ? users[selectedUserId] : null;
 
   // Стиль для чекбоксів
   const checkboxStyle = { 
     width: '20px', 
     height: '20px', 
     cursor: 'pointer',
-    accentColor: '#5b5fc7' // Робить галочку фіолетовою
+    accentColor: '#5b5fc7' 
   };
 
   return (
     <div className="page-container">
+      {/* Хедер та статистика залишаються зверху */}
       <div className="analytics-header">
         <div className="analytics-title-section">
           <Users size={32} className="analytics-icon" />
@@ -114,7 +118,6 @@ export default function UsersPage() {
         </button>
       </div>
 
-      {/* Статистика (без змін) */}
       <div className="stats-grid">
         <div className="stat-card total">
           <div className="stat-value">{usersList.length}</div>
@@ -130,165 +133,181 @@ export default function UsersPage() {
         </div>
       </div>
 
-      <div className="data-card">
-        <div className="data-header">
-          <h2 className="data-title">
-            Список користувачів ({usersList.length})
-          </h2>
+      {/* Новий макет (використовуємо класи з FilesListPage) */}
+      <div className="files-layout">
+        {/* ========================== */}
+        {/* Ліва панель - Список     */}
+        {/* ========================== */}
+        <div className="files-sidebar">
+          <div className="sidebar-header">
+            <h2 className="sidebar-title">Користувачі ({usersList.length})</h2>
+          </div>
+
+          {loading && (
+            <div className="sidebar-loading">
+              <div className="spinner"></div>
+            </div>
+          )}
+          
+          {error && <div className="error-message">{error}</div>}
+
+          <div className="files-list">
+            {usersList.map(([chatId, user]) => (
+              <div
+                key={chatId}
+                className={`file-item ${selectedUserId === chatId ? 'active' : ''}`}
+                onClick={() => setSelectedUserId(chatId)}
+              >
+                <div className="file-item-content">
+                  <UserCheck size={20} className="file-icon" />
+                  <div className="file-info">
+                    <h3 className="file-name">{user.name || 'n/a'}</h3>
+                    <div className="file-meta" style={{ marginTop: '4px' }}>
+                      <span className="file-meta-item">
+                        <Mail size={14} />
+                        {user.email || 'n/a'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {loading && (
-          <div className="loading-container">
-            <div className="spinner"></div>
-            <p className="loading-text">Завантаження користувачів...</p>
-          </div>
-        )}
-        
-        {error && (
-          <div className="error-message" style={{ margin: 0 }}>{error}</div>
-        )}
+        {/* ========================== */}
+        {/* Права панель - Редактор   */}
+        {/* ========================== */}
+        <div className="files-content">
+          {loading && (
+            <div className="content-loading">
+              <div className="spinner"></div>
+            </div>
+          )}
 
-        {!loading && !error && usersList.length > 0 && (
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  {/* Додаємо хелпери для іконок */}
-                  <th title="Chat ID"><div className="th-icon"><Hash size={16} /> Chat ID</div></th>
-                  <th title="Name"><div className="th-icon"><Users size={16} /> Name</div></th>
-                  <th title="Email"><div className="th-icon"><Mail size={16} /> Email</div></th>
-                  <th title="Added to List"><div className="th-icon"><CheckCircle size={16} /> Added</div></th>
-                  <th title="Send Error Msg"><div className="th-icon"><AlertTriangle size={16} /> Error</div></th>
-                  <th title="Invoice"><div className="th-icon"><FileText size={16} /> Invoice</div></th>
-                  <th title="Order All"><div className="th-icon"><Package size={16} /> Order All</div></th>
-                  <th title="Volume & Params"><div className="th-icon"><Boxes size={16} /> Volume</div></th>
-                  <th title="Search Code"><div className="th-icon"><SearchCode size={16} /> Search</div></th>
-                  <th><div className="th-icon"><Save size={16} /> Дії</div></th>
-                </tr>
-              </thead>
-              <tbody>
-                {usersList.map(([chatId, user]) => (
-                  <tr key={chatId}>
-                    {/* Chat ID */}
-                    <td>{user.chatId}</td>
-                    
-                    {/* Name (Input) */}
-                    <td>
-                      <input
-                        type="text"
-                        value={user.name || ''}
-                        onChange={(e) => handleInputChange(chatId, 'name', e.target.value)}
-                        placeholder="n/a"
-                        className="form-input"
-                        style={{ padding: '8px 12px', fontSize: '14px', minWidth: '150px' }}
-                      />
-                    </td>
-                    
-                    {/* Email (Read-only) */}
-                    <td style={{ fontSize: '14px', color: '#6b7280' }}>
-                      {user.email || 'n/a'}
-                    </td>
-                    
-                    {/* Added to List (Checkbox) */}
-                    <td style={{ textAlign: 'center' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!user.addedToList}
-                        onChange={(e) => handleCheckboxChange(chatId, 'addedToList', e.target.checked)}
-                        style={checkboxStyle}
-                      />
-                    </td>
-                    
-                    {/* Send Error Msg (Checkbox) */}
-                    <td style={{ textAlign: 'center' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!user.sendErrorMessage}
-                        onChange={(e) => handleCheckboxChange(chatId, 'sendErrorMessage', e.target.checked)}
-                        style={checkboxStyle}
-                      />
-                    </td>
+          {!selectedUser && !loading && (
+            <div className="empty-content">
+              <Users size={80} />
+              <h3>Виберіть користувача</h3>
+              <p>Натисніть на користувача у списку, щоб переглянути його дані</p>
+            </div>
+          )}
 
-                    {/* Invoice (Checkbox) */}
-                    <td style={{ textAlign: 'center' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!user.invoice}
-                        onChange={(e) => handleCheckboxChange(chatId, 'invoice', e.target.checked)}
-                        style={checkboxStyle}
-                      />
-                    </td>
-                    
-                    {/* orderAll (Checkbox) */}
-                    <td style={{ textAlign: 'center' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!user.orderAll}
-                        onChange={(e) => handleCheckboxChange(chatId, 'orderAll', e.target.checked)}
-                        style={checkboxStyle}
-                      />
-                    </td>
-                    
-                    {/* volumeAndParams (Checkbox) */}
-                    <td style={{ textAlign: 'center' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!user.volumeAndParams}
-                        onChange={(e) => handleCheckboxChange(chatId, 'volumeAndParams', e.target.checked)}
-                        style={checkboxStyle}
-                      />
-                    </td>
-                    
-                    {/* searchCode (Checkbox) */}
-                    <td style={{ textAlign: 'center' }}>
-                      <input
-                        type="checkbox"
-                        checked={!!user.searchCode}
-                        onChange={(e) => handleCheckboxChange(chatId, 'searchCode', e.target.checked)}
-                        style={checkboxStyle}
-                      />
-                    </td>
-                    
-                    {/* Save Button */}
-                    <td>
-                      <button
-                        onClick={() => handleSave(chatId)}
-                        className="backend-upload-button"
-                        style={{ padding: '8px 16px', fontSize: '13px', margin: 0, boxShadow: 'none' }}
-                        disabled={isSaving[chatId]}
-                      >
-                        {isSaving[chatId] ? (
-                          <RefreshCw size={16} className="animate-spin" />
-                        ) : (
-                          <Save size={16} />
-                        )}
-                        {isSaving[chatId] ? '...' : 'Зберегти'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-        
-        {!loading && usersList.length === 0 && !error && (
-          <div className="no-results">
-            Дані відсутні в базі.
-          </div>
-        )}
+          {selectedUser && !loading && (
+            <>
+              <div className="content-header" style={{ alignItems: 'center' }}>
+                <div>
+                  <h2 className="content-title">{selectedUser.name || 'n/a'}</h2>
+                  <div className="content-meta">
+                    <span>ID: {selectedUser.chatId}</span>
+                  </div>
+                </div>
+                {/* Кнопка збереження тепер тут */}
+                <button
+                  onClick={handleSave}
+                  className="backend-upload-button"
+                  style={{ padding: '10px 24px', fontSize: '15px' }}
+                  disabled={isSaving}
+                >
+                  {isSaving ? (
+                    <RefreshCw size={18} className="animate-spin" />
+                  ) : (
+                    <Save size={18} />
+                  )}
+                  {isSaving ? 'Збереження...' : 'Зберегти зміни'}
+                </button>
+              </div>
+
+              {/* Форма редагування */}
+              <div className="user-edit-form">
+                
+                {/* Основна інформація */}
+                <div className="form-grid">
+                  <div className="form-group-flex">
+                    <label className="form-label"><Users size={18} /> Name</label>
+                    <input
+                      type="text"
+                      value={selectedUser.name || ''}
+                      onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
+                      placeholder="n/a"
+                      className="form-input"
+                    />
+                  </div>
+                  <div className="form-group-flex">
+                    <label className="form-label"><Hash size={18} /> Chat ID</label>
+                    <p className="form-static-text">{selectedUser.chatId}</p>
+                  </div>
+                </div>
+
+                {/* Чекбокси дозволів */}
+                <h3 className="form-section-title">Дозволи</h3>
+                <div className="checkbox-grid">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.addedToList}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'addedToList', e.target.checked)}
+                      style={checkboxStyle}
+                    />
+                    <CheckCircle /> Added to List
+                  </label>
+                  
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.sendErrorMessage}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'sendErrorMessage', e.target.checked)}
+                      style={checkboxStyle}
+                    />
+                    <AlertTriangle /> Send Error Msg
+                  </label>
+
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.invoice}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'invoice', e.target.checked)}
+                      style={checkboxStyle}
+                    />
+                    <FileText /> Invoice
+                  </label>
+                  
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.orderAll}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'orderAll', e.target.checked)}
+                      style={checkboxStyle}
+                    />
+                    <Package /> Order All
+                  </label>
+                  
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.volumeAndParams}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'volumeAndParams', e.target.checked)}
+                      style={checkboxStyle}
+                    />
+                    <Boxes /> Volume & Params
+                  </label>
+                  
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.searchCode}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'searchCode', e.target.checked)}
+                      style={checkboxStyle}
+                    />
+                    <SearchCode /> Search Code
+                  </label>
+                </div>
+
+              </div>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
 }
-
-// Додамо трохи стилів для іконок в заголовках, щоб було охайніше
-// Додайте це до вашого файлу index.css
-
-/*
-.th-icon {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-*/
