@@ -90,7 +90,7 @@ export default function UsersPage() {
 
         try {
             await update(userRef, {
-                objectId: selectedUserId || '',
+                // objectId: selectedUserId || '',
                 chatId: userToSave.chatId || 0,
                 userId: userToSave.userId || '',
                 email: userToSave.email || '',
