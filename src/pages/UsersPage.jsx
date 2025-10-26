@@ -128,7 +128,7 @@ export default function UsersPage() {
                 <div className="analytics-title-section">
                     <Users size={32} className="analytics-icon" />
                     <div>
-                        <h1 className="analytics-title">Робітники</h1>
+                        <h1 className="analytics-title">Управління користувачами</h1>
                         {/* <p className="analytics-subtitle">Список користувачів з `release/tg_user_db`</p> */}
                     </div>
                 </div>

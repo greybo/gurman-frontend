@@ -71,7 +71,7 @@ function Navigation() {
                 className={`nav-link ${isActive('/users') ? 'active' : ''}`}
               >
                 <User size={18} />
-                Користувачі
+                Робітники
               </Link>
 
               {/* <Link
