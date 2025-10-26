@@ -304,13 +304,13 @@ export default function AnalyticsPage() {
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{orderStats.totalProducts}</div>
                 </div>
-                <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
+                <div style={{ padding: '12px 16px', backgroundColor: '#d7d7d7ff', border: '2px solid #b9ab10ff', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Вага</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{paramsData.totalWeight}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b9ab10ff' }}>{paramsData.totalWeight}</div>
                 </div>
-                <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
+                <div style={{ padding: '12px 16px', backgroundColor: '#ded7dcff', border: '2px solid #b91081ff', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Об'єм</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{paramsData.totalVolume}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b91081ff' }}>{paramsData.totalVolume}</div>
                 </div>
                 {/* <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', border: '2px solid #9333ea', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
