@@ -20,7 +20,7 @@ export default function UsersPage() {
     const fetchUsers = () => {
         setLoading(true);
         setError('');
-        const usersRef = ref(database, `${prefixPath}/tg_user_db`);
+        const usersRef = ref(database, `${prefixPath}/user_db`);
 
         onValue(usersRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -70,39 +70,31 @@ export default function UsersPage() {
         setIsSaving(true);
 
         const userToSave = users[selectedUserId];
-        // Get a key for a new Post.
-        //   var newPostKey = firebase.database().ref().child('posts').push().key;
+        /*
+        const updates = {};
+        updates[`/release/tg_user_db/${key}`] = { name: "Новий запис" };
+        updates[`/some/other/path/${key}`] = true;
+        
+        await update(ref(database), updates);
+        */
 
-        //   // Write the new post's data simultaneously in the posts list and the user's post list.
-        //   var updates = {};
-        //   updates['/posts/' + newPostKey] = postData;
-        //   updates['/user-posts/' + uid + '/' + newPostKey] = postData;
-        //   return firebase.database().ref().update(updates);
+        // const usersDbRef = ref(database, `${prefixPath}/user_db_v2`);
+        // const basePath = `${prefixPath}/user_db`;
+        // const userRef = userToSave.objectId
+        //     ? ref(database, `${basePath}/${userToSave.objectId}`)
+        //     : push(ref(database, basePath));
+        // const objectId = userToSave.objectId || userRef.key;
 
-
-
-        // 1. Отримуємо посилання на список, куди хочемо додати дані
-        const dbRef = ref(database, 'release/user_db_v2');
-        // 2. Викликаємо push(). Це створює новий вузол з унікальним ID
-        //    і повертає посилання на нього.
-        const userRef = push(dbRef);
-
-        // 3. (Опційно) Ви можете отримати згенерований ключ, якщо він потрібен
-        const newKey = userRef.key;
-        console.info(`Saving user with new key: ${newKey}`);
-
-
-        // const userRef = ref(database, `${prefixPath}/user_db_v2/${selectedUserId}`);
-
-        // const userRef = ref(database, `${prefixPath}/user_db_v2/${newKey}`);
+        const userRef = ref(database, `${prefixPath}/user_db/${selectedUserId}`);
+        console.info('objectId:', selectedUserId);
 
         try {
             await update(userRef, {
-                objectId: newKey || 'n/a',
+                objectId: selectedUserId || '',
                 chatId: userToSave.chatId || 0,
-                UID: userToSave.UID || 'n/a',
-                email: userToSave.email || 'n/a',
-                name: userToSave.name || 'n/a',
+                userId: userToSave.userId || '',
+                email: userToSave.email || '',
+                name: userToSave.name || '',
                 addedToList: userToSave.addedToList || false,
                 sendErrorMessage: userToSave.sendErrorMessage || false,
                 invoice: userToSave.invoice || false,
@@ -136,17 +128,17 @@ export default function UsersPage() {
                 <div className="analytics-title-section">
                     <Users size={32} className="analytics-icon" />
                     <div>
-                        <h1 className="analytics-title">Керування TG користувачами</h1>
-                        <p className="analytics-subtitle">Список користувачів з `release/tg_user_db`</p>
+                        <h1 className="analytics-title">Робітники</h1>
+                        {/* <p className="analytics-subtitle">Список користувачів з `release/tg_user_db`</p> */}
                     </div>
                 </div>
-                <button onClick={fetchUsers} className="refresh-button" disabled={loading}>
+                {/* <button onClick={fetchUsers} className="refresh-button" disabled={loading}>
                     <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
                     Оновити список
-                </button>
+                </button> */}
             </div>
 
-            <div className="stats-grid">
+            {/* <div className="stats-grid">
                 <div className="stat-card total">
                     <div className="stat-value">{usersList.length}</div>
                     <div className="stat-label">Всього користувачів</div>
@@ -159,7 +151,7 @@ export default function UsersPage() {
                     <div className="stat-value">{usersList.filter(([, u]) => u.sendErrorMessage).length}</div>
                     <div className="stat-label">Send Error</div>
                 </div>
-            </div>
+            </div> */}
 
             {/* Новий макет (використовуємо класи з FilesListPage) */}
             <div className="files-layout">
@@ -180,11 +172,11 @@ export default function UsersPage() {
                     {error && <div className="error-message">{error}</div>}
 
                     <div className="files-list">
-                        {usersList.map(([chatId, user]) => (
+                        {usersList.map(([objectId, user]) => (
                             <div
-                                key={chatId}
-                                className={`file-item ${selectedUserId === chatId ? 'active' : ''}`}
-                                onClick={() => setSelectedUserId(chatId)}
+                                key={objectId}
+                                className={`file-item ${selectedUserId === objectId ? 'active' : ''}`}
+                                onClick={() => setSelectedUserId(objectId)}
                             >
                                 <div className="file-item-content">
                                     <UserCheck size={20} className="file-icon" />
@@ -259,7 +251,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
                                             placeholder="n/a"
                                             className="form-input"
-                                            disabled={true}
+                                            disabled={false}
                                         />
                                     </div>
                                     <div className="form-group-flex">
@@ -271,7 +263,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleInputChange(selectedUserId, 'email', e.target.value)}
                                             placeholder="n/a"
                                             className="form-input"
-                                            disabled={false}
+                                            disabled={true}
                                         />
                                     </div>
                                     <div className="form-group-flex">
@@ -289,9 +281,9 @@ export default function UsersPage() {
                                             checked={!!selectedUser.addedToList}
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'addedToList', e.target.checked)}
                                             style={checkboxStyle}
-                                            disabled={true}
+                                            disabled={false}
                                         />
-                                        <CheckCircle /> Added to List
+                                        <CheckCircle /> Додано до списку
                                     </label>
 
                                     <label className="checkbox-label">
@@ -300,9 +292,9 @@ export default function UsersPage() {
                                             checked={!!selectedUser.sendErrorMessage}
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'sendErrorMessage', e.target.checked)}
                                             style={checkboxStyle}
-                                            disabled={true}
+                                            disabled={false}
                                         />
-                                        <AlertTriangle /> Send Error Msg
+                                        <AlertTriangle /> Повідомляти про помилки
                                     </label>
 
                                     <label className="checkbox-label">
@@ -312,7 +304,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'invoice', e.target.checked)}
                                             style={checkboxStyle}
                                         />
-                                        <FileText /> Invoice
+                                        <FileText /> Накладна
                                     </label>
 
                                     <label className="checkbox-label">
@@ -322,7 +314,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'orderAll', e.target.checked)}
                                             style={checkboxStyle}
                                         />
-                                        <Package /> Order All
+                                        <Package /> Замовленя
                                     </label>
 
                                     <label className="checkbox-label">
@@ -332,7 +324,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'volumeAndParams', e.target.checked)}
                                             style={checkboxStyle}
                                         />
-                                        <Boxes /> Volume & Params
+                                        <Boxes /> Об'єми та Розміщення
                                     </label>
 
                                     <label className="checkbox-label">
@@ -342,7 +334,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'searchCode', e.target.checked)}
                                             style={checkboxStyle}
                                         />
-                                        <SearchCode /> Search Code
+                                        <SearchCode /> Пошук коду
                                     </label>
                                 </div>
 

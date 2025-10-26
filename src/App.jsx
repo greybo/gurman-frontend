@@ -71,7 +71,7 @@ function Navigation() {
                 className={`nav-link ${isActive('/users') ? 'active' : ''}`}
               >
                 <User size={18} />
-                TG Користувачі
+                Користувачі
               </Link>
 
               {/* <Link
