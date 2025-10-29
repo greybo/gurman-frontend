@@ -1,7 +1,7 @@
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { FileSpreadsheet, Home, TestTube2, FolderOpen, LogOut, User } from 'lucide-react';
+import { FileSpreadsheet, Home, TestTube2, FolderOpen, LogOut, User, Settings as SettingsIcon } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import ExcelParser from './pages/ExcelParser';
@@ -11,6 +11,7 @@ import FilesListPage from './pages/FilesListPage';
 import LoginPage from './pages/LoginPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import UsersPage from './pages/UsersPage'; // <-- 1. ІМПОРТ НОВОЇ СТОРІНКИ
+import SettingsPage from './pages/SettingsPage';
 
 function Navigation() {
   const location = useLocation();
@@ -63,6 +64,13 @@ function Navigation() {
               >
                 <FolderOpen size={18} />
                 Мої файли
+              </Link>
+              <Link
+                to="/settings"
+                className={`nav-link ${isActive('/settings') ? 'active' : ''}`}
+              >
+                <SettingsIcon size={18} />
+                Налаштування
               </Link>
               
               {/* 2. ДОДАНО ЛІНК НА НОВУ СТОРІНКУ */}
@@ -142,6 +150,14 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <UsersPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <PrivateRoute>
+              <SettingsPage />
             </PrivateRoute>
           }
         />

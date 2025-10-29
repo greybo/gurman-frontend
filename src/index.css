@@ -85,10 +85,90 @@ body {
 }
 
 /* Page Container */
-.page-container {
-  padding: 32px 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  .page-container {
+    padding: 32px 24px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+/* Settings Page */
+.settings-header {
+  margin-bottom: 24px;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  min-height: 480px;
+}
+
+.settings-sidebar {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  height: fit-content;
+}
+
+.settings-menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-menu-item {
+  text-align: left;
+  background: transparent;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #374151;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.settings-menu-item:hover {
+  background: #f3f4f6;
+}
+
+.settings-menu-item.active {
+  background: #5b5fc7;
+  color: white;
+}
+
+.settings-content {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  padding: 24px 28px;
+}
+
+.threshold-form {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.settings-input {
+  padding: 10px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+  outline: none;
+  transition: all 0.15s;
+  width: 200px;
+}
+
+.settings-input:focus {
+  border-color: #5b5fc7;
+  box-shadow: 0 0 0 3px rgba(91, 95, 199, 0.1);
+}
+
+.save-btn {
+  padding: 10px 16px;
 }
 
 /* Files List Page Styles */
@@ -403,6 +483,9 @@ body {
 
   .files-sidebar {
     max-height: 400px;
+  }
+  .settings-layout {
+    grid-template-columns: 1fr;
   }
 }
 
