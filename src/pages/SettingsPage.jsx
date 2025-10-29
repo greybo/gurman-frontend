@@ -1,18 +1,62 @@
 // src/pages/SettingsPage.jsx
 import React, { useState, useEffect } from 'react';
+import { database } from '../firebase';
+import { ref, onValue, set } from 'firebase/database';
 
 export default function SettingsPage() {
   const [activeItem, setActiveItem] = useState('scan-threshold');
   const [threshold, setThreshold] = useState('');
+  const [message, setMessage] = useState('');
+  const [updateDate, setUpdateDate] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const DB_PATH = 'release/scan_threshold_message_db';
 
   useEffect(() => {
-    const saved = localStorage.getItem('scan_threshold');
-    if (saved !== null) setThreshold(saved);
+    // Реальний читання з Firebase Realtime Database
+    const r = ref(database, DB_PATH);
+    const unsub = onValue(r, (snap) => {
+      const val = snap.val();
+      if (val) {
+        setThreshold(val.threshold ?? '');
+        setMessage(val.message ?? '');
+        setUpdateDate(val.updateDate ?? '');
+      }
+    });
+    return () => unsub();
   }, []);
 
-  const saveThreshold = () => {
-    localStorage.setItem('scan_threshold', threshold || '');
-    alert('Поріг сканувань збережено');
+  const formatNow = () => {
+    const d = new Date();
+    const pad = (n) => n.toString().padStart(2, '0');
+    const day = pad(d.getDate());
+    const month = pad(d.getMonth() + 1);
+    const year = d.getFullYear();
+    const hours = pad(d.getHours());
+    const minutes = pad(d.getMinutes());
+    const seconds = pad(d.getSeconds());
+    return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const saveSettings = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const data = {
+        threshold: Number(threshold) || 0,
+        updateDate: formatNow(),
+        message: message || ''
+      };
+      await set(ref(database, DB_PATH), data);
+      setUpdateDate(data.updateDate);
+      alert('Налаштування збережено');
+    } catch (e) {
+      console.error(e);
+      setError('Помилка збереження до Firebase');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -55,10 +99,26 @@ export default function SettingsPage() {
                   value={threshold}
                   onChange={(e) => setThreshold(e.target.value)}
                 />
-                <button className="btn-primary save-btn" onClick={saveThreshold}>
-                  Зберегти
+                <input
+                  type="text"
+                  className="settings-input"
+                  style={{ width: 360 }}
+                  placeholder="Текст повідомлення"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                />
+                <button className="btn-primary save-btn" onClick={saveSettings} disabled={saving}>
+                  {saving ? 'Збереження...' : 'Зберегти'}
                 </button>
               </div>
+              {error && (
+                <div className="error-message" style={{ margin: '16px 0' }}>{error}</div>
+              )}
+              {updateDate && (
+                <div className="data-info" style={{ marginTop: 16 }}>
+                  Останнє оновлення: {updateDate}
+                </div>
+              )}
             </div>
           )}
 
