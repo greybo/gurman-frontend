@@ -5,7 +5,8 @@ import { ref, onValue } from 'firebase/database';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { BarChart2, Calendar as CalendarIcon, User, Activity, ShoppingCart } from 'lucide-react';
 
-const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
+// const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
+const prefixPath = 'release';
 
 export default function AnalyticsPage() {
   const today = new Date();
@@ -20,6 +21,7 @@ export default function AnalyticsPage() {
   const [availableDays, setAvailableDays] = useState([]);
 
   const [loggingData, setLoggingData] = useState({});
+  const [scanThresholdData, setScanThresholdData] = useState({});
   const [users, setUsers] = useState([]);
   const [actions, setActions] = useState([]);
   const [selectedUser, setSelectedUser] = useState('all');
@@ -89,6 +91,24 @@ export default function AnalyticsPage() {
         setLoggingData({});
         setUsers([]);
         setActions([]);
+      }
+      setLoading(false);
+    }, { onlyOnce: true });
+  }, [selectedYear, selectedMonth, selectedDay, availableDays]);
+
+  useEffect(() => {
+    if (!selectedDay || availableDays.length === 0) return;
+    setLoading(true);
+    const dbRef = ref(database, `${prefixPath}/scan_threshold_db/${selectedYear}/${selectedMonth}/${selectedDay}`);
+    console.log('Scan Threshold Data:', dbRef.key);
+    onValue(dbRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setScanThresholdData(data);
+
+        console.log('Scan Threshold Data:', data);
+      } else {
+        setScanThresholdData({});
       }
       setLoading(false);
     }, { onlyOnce: true });
@@ -260,7 +280,7 @@ export default function AnalyticsPage() {
 
   // Обчислюємо загальну кількість сканів перед рендерингом
   const successScansFromLogs = chartData.reduce((sum, item) => sum + item.successCount, 0);
-  const totalScansToDisplay = scansFromOrders + successScansFromLogs;
+  // const totalScansToDisplay = scansFromOrders + successScansFromLogs;
 
   return (
     <div className="page-container">
@@ -298,19 +318,19 @@ export default function AnalyticsPage() {
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Всього замовлень</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#0369a1' }}>{orderStats.totalOrders}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#0369a1' }}>{scanThresholdData.totalOrders}</div>
                 </div>
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0fdf4', border: '2px solid #10b981', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{orderStats.totalProducts}</div>
+                  <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Кількість товару на сьогодні</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#059669' }}>{scanThresholdData.totalProducts}</div>
                 </div>
                 <div style={{ padding: '12px 16px', backgroundColor: '#d7d7d7ff', border: '2px solid #b9ab10ff', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Вага</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b9ab10ff' }}>{paramsData.totalWeight}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b9ab10ff' }}>{scanThresholdData.totalWeight}</div>
                 </div>
                 <div style={{ padding: '12px 16px', backgroundColor: '#ded7dcff', border: '2px solid #b91081ff', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Об'єм</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b91081ff' }}>{paramsData.totalVolume}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b91081ff' }}>{scanThresholdData.totalVolume}</div>
                 </div>
                 {/* <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', border: '2px solid #9333ea', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
