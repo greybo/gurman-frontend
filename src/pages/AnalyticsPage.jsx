@@ -5,7 +5,6 @@ import { ref, onValue } from 'firebase/database';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { BarChart2, Calendar as CalendarIcon, User, Activity, ShoppingCart } from 'lucide-react';
 
-// const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
 const prefixPath = 'release';
 
 export default function AnalyticsPage() {
@@ -30,25 +29,10 @@ export default function AnalyticsPage() {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const [allOrdersData, setAllOrdersData] = useState([]);
-  const [paramsData, setAllParamsData] = useState({});
+  // const [paramsData, setAllParamsData] = useState({});
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState('');
-  // Зберігаємо кількість сканів тільки зі статусів замовлень
-  const [scansFromOrders, setScansFromOrders] = useState(0);
-  const [orderStats, setOrderStats] = useState({
-    totalOrders: 0,
-    totalProducts: 0,
-    totalWeight: '0',
-    totalVolume: '0',
-    byStatus: [
-      { id: 2, name: 'Підтверджено', count: 0, productsCount: 0, color: '#ffea00ff', bgColor: '#fffbeb' },
-      { id: 3, name: 'На відправку', count: 0, productsCount: 0, color: '#FF9800', bgColor: '#fffbeb' },
-      { id: 13, name: 'Комплектується', count: 0, productsCount: 0, color: '#057CB1', bgColor: '#faf5ff' },
-      { id: 11, name: 'Зібрано', count: 0, productsCount: 0, color: '#FF9494', bgColor: '#fffafcff' },
-      { id: 24, name: 'Передано кур\'єру', count: 0, productsCount: 0, color: '#003E02', bgColor: '#cee7cfff' }
-    ]
-  });
+
 
   useEffect(() => {
     const yearRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}`);
@@ -100,99 +84,16 @@ export default function AnalyticsPage() {
     if (!selectedDay || availableDays.length === 0) return;
     setLoading(true);
     const dbRef = ref(database, `${prefixPath}/scan_threshold_db/${selectedYear}/${selectedMonth}/${selectedDay}`);
-    console.log('Scan Threshold Data:', dbRef.key);
     onValue(dbRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
         setScanThresholdData(data);
-
-        console.log('Scan Threshold Data:', data);
       } else {
         setScanThresholdData({});
       }
       setLoading(false);
     }, { onlyOnce: true });
   }, [selectedYear, selectedMonth, selectedDay, availableDays]);
-
-  useEffect(() => {
-    setOrdersLoading(true);
-    const ordersRef = ref(database, `${prefixPath}/orders_DB_V3`);
-    onValue(ordersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const ordersArray = Object.values(snapshot.val());
-        setAllOrdersData(ordersArray);
-
-        let totalProducts = 0;
-        const statusCounts = { 2: { o: 0, p: 0 }, 3: { o: 0, p: 0 }, 13: { o: 0, p: 0 }, 11: { o: 0, p: 0 }, 24: { o: 0, p: 0 } };
-
-        ordersArray.forEach(order => {
-          let orderProducts = 0;
-          if (order.products && Array.isArray(order.products)) {
-            orderProducts = order.products.reduce((sum, product) => sum + (product.amount || 0), 0);
-            totalProducts += orderProducts;
-          }
-          if (order.statusId && statusCounts[order.statusId]) {
-            statusCounts[order.statusId].o += 1;
-            statusCounts[order.statusId].p += orderProducts;
-          }
-        });
-
-        const scansCount = (statusCounts[2]?.p || 0) + (statusCounts[3]?.p || 0);
-        setScansFromOrders(scansCount);
-
-        setOrderStats(prev => ({
-          totalOrders: ordersArray.length,
-          totalProducts,
-          byStatus: prev.byStatus.map(s => ({ ...s, count: statusCounts[s.id].o, productsCount: statusCounts[s.id].p }))
-        }));
-        setOrdersError('');
-      } else {
-        setAllOrdersData([]);
-        setOrderStats(prev => ({ totalOrders: 0, totalProducts: 0, byStatus: prev.byStatus.map(s => ({ ...s, count: 0, productsCount: 0 })) }));
-        setOrdersError('Замовлень не знайдено');
-        setScansFromOrders(0);
-      }
-      setOrdersLoading(false);
-    }, { onlyOnce: true });
-  }, []);
-
-  useEffect(() => {
-    // setOrdersLoading(true);
-    if (!allOrdersData || allOrdersData.length === 0) return;
-
-    const paramsRef = ref(database, `${prefixPath}/placement_db`);
-    onValue(paramsRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const paramsArray = Object.values(snapshot.val());
-
-        let totalWeight = 0.0;
-        let totalVolume = 0.0;
-        allOrdersData.forEach(order => {
-          order.products.forEach(product => {
-            const param = paramsArray.find(p => p.productId === product.parameterProductId);
-            if (param) {
-              let productVolume = 0.0;
-              if (param.width && param.length && param.height) {
-                productVolume = ((param.width / 1000) * (param.length / 1000) * (param.height / 1000)) * (product.amount || 0);
-              }
-              totalWeight += (param.weight / 1000 || 0.0) * (product.amount || 0);
-              totalVolume += productVolume;
-            }
-          });
-        });
-
-        setAllParamsData(prev => ({
-          totalWeight: `${totalWeight.toFixed(2)} кг`,
-          totalVolume: `${totalVolume.toFixed(3)} м³`,
-        }));
-
-        setOrdersError('');
-      } else {
-        setOrdersError('Параметри не знайдено');
-      }
-      // setOrdersLoading(false);
-    }, { onlyOnce: true });
-  }, [allOrdersData]);
 
   useEffect(() => {
     let filteredEntries = Object.entries(loggingData);
@@ -280,7 +181,6 @@ export default function AnalyticsPage() {
 
   // Обчислюємо загальну кількість сканів перед рендерингом
   const successScansFromLogs = chartData.reduce((sum, item) => sum + item.successCount, 0);
-  // const totalScansToDisplay = scansFromOrders + successScansFromLogs;
 
   return (
     <div className="page-container">
@@ -307,13 +207,6 @@ export default function AnalyticsPage() {
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '10px' }}>
-                {/* {orderStats.byStatus.map((status) => (
-                  <div key={status.id} style={{ padding: '12px 16px', backgroundColor: status.bgColor, border: `2px solid ${status.color}`, borderRadius: '8px', textAlign: 'center' }}>
-                    <div style={{ fontSize: '11px', fontWeight: '600' }}>{status.name}</div>
-                    <div style={{ fontSize: '22px', fontWeight: '700', color: status.color }}>{status.count}</div>
-                    <div style={{ fontSize: '10px' }}>товарів: {status.productsCount}</div>
-                  </div>
-                ))} */}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '10px' }}>
                 <div style={{ padding: '12px 16px', backgroundColor: '#f0f9ff', border: '2px solid #0ea5e9', borderRadius: '8px' }}>
@@ -332,10 +225,6 @@ export default function AnalyticsPage() {
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Об'єм</div>
                   <div style={{ fontSize: '20px', fontWeight: '700', color: '#b91081ff' }}>{scanThresholdData.totalVolume}</div>
                 </div>
-                {/* <div style={{ padding: '12px 16px', backgroundColor: '#faf5ff', border: '2px solid #9333ea', borderRadius: '8px' }}>
-                  <div style={{ fontSize: '11px', color: '#6b21a8', fontWeight: '600', marginBottom: '4px' }}>Кількість сканів на сьогодні</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#7e22ce' }}>{totalScansToDisplay}</div>
-                </div> */}
               </div>
             </div>
           )}
