@@ -219,11 +219,11 @@ export default function AnalyticsPage() {
                 </div>
                 <div style={{ padding: '12px 16px', backgroundColor: '#d7d7d7ff', border: '2px solid #b9ab10ff', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Вага</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b9ab10ff' }}>{scanThresholdData.totalWeight}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b9ab10ff' }}>{scanThresholdData.totalWeight + ' кг'}</div>
                 </div>
                 <div style={{ padding: '12px 16px', backgroundColor: '#ded7dcff', border: '2px solid #b91081ff', borderRadius: '8px' }}>
                   <div style={{ fontSize: '11px', fontWeight: '600', marginBottom: '4px' }}>Об'єм</div>
-                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b91081ff' }}>{scanThresholdData.totalVolume}</div>
+                  <div style={{ fontSize: '20px', fontWeight: '700', color: '#b91081ff' }}>{scanThresholdData.totalVolume + ' м³'}</div>
                 </div>
               </div>
             </div>
