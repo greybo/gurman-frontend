@@ -1,10 +1,10 @@
 // src/pages/UsersPage.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { database } from '../firebase';
 import { ref, onValue, update, push } from 'firebase/database';
 import {
     Users, Hash, CheckCircle, AlertTriangle, Save, RefreshCw,
-    Mail, FileText, Package, Boxes, SearchCode, UserCheck
+    Mail, FileText, Package, Boxes, SearchCode, UserCheck, ChevronDown
 } from 'lucide-react';
 
 // Використовуємо той самий префікс, що й в AnalyticsPage
@@ -19,9 +19,13 @@ export default function UsersPage() {
     const [currentUsersTg, setCurrentUsersTg] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
-    const [isSaving, setIsSaving] = useState(false); // Тепер це один прапорець
-    const [selectedUserId, setSelectedUserId] = useState(null); // ID вибраного користувача
+    const [isSaving, setIsSaving] = useState(false);
+    const [selectedUserId, setSelectedUserId] = useState(null);
     const [backupUser, setBackupUser] = useState(null);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const dropdownRef = useRef(null);
 
     const fetchUsers = () => {
         setLoading(true);
@@ -49,13 +53,14 @@ export default function UsersPage() {
     }, []);
 
     useEffect(() => {
+        const chatId = users[selectedUserId]?.chatId;
+        setSearchTerm(chatId || '');
+        if (!selectedUserId) return;
         const usersRef = ref(database, `${usersTgDbPath}/`);
         onValue(usersRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 setUsersTg(data);
-                const chatId = users[selectedUserId]?.chatId;
-                // console.info('Users (TG):', data);
                 const tg = data[chatId] || {};
                 setCurrentUsersTg(tg);
 
@@ -78,16 +83,25 @@ export default function UsersPage() {
     }, [selectedUserId]);
 
     useEffect(() => {
-        if (!users || !selectedUserId) {
-            return;
-        }
+        if (!users || !selectedUserId) return
 
         const user = users[selectedUserId] || null;
         setBackupUser(user);
 
     }, [selectedUserId]);
 
-    // Обробники, як і раніше, змінюють загальний стан 'users'
+    // Закриття dropdown при кліку поза ним
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setShowDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
     const handleInputChange = (userId, field, value) => {
         setUsers(prevUsers => ({
             ...prevUsers,
@@ -108,7 +122,13 @@ export default function UsersPage() {
         }));
     };
 
-    // Збереження працює для вибраного користувача
+    // Вибір chatId з dropdown
+    const handleSelectChatId = (chatId) => {
+        // handleInputChange(selectedUserId, 'chatId', chatId);
+        setSearchTerm(chatId || '');
+        setShowDropdown(false);
+    };
+
     const handleSave = async () => {
         if (!selectedUserId) return;
 
@@ -116,19 +136,12 @@ export default function UsersPage() {
 
         const userToSave = users[selectedUserId];
 
-        // const updates = {};
-        // updates[`/some/tg_user_db/${userTgToSave.chatId}`] = { testField: "testField" };
-        // updates[`/some/tg_user_db/${userTgToSave.chatId}/name`] = userToSave.name || '';
-        // updates[`/some/tg_user_db/${userTgToSave.chatId}/email`] = userToSave.email || '';
-        // updates[`/some/tg_user_db/${userTgToSave.chatId}/otherField`] = "otherValue 1";
-        // await update(ref(database), updates);
-
         const userRef = ref(database, `${usersDbPath}/${selectedUserId}`);
-        // console.info('objectId:', selectedUserId);
-
+        console.info('Check id:', searchTerm);
+        handleInputChange(selectedUserId, 'chatId', searchTerm || 0);
         try {
             await update(userRef, {
-                chatId: userToSave.chatId || 0,
+                chatId: searchTerm || 0,
                 userId: userToSave.userId || '',
                 email: userToSave.email || '',
                 name: userToSave.name || '',
@@ -150,9 +163,17 @@ export default function UsersPage() {
 
     const usersList = Object.entries(users);
     const selectedUser = selectedUserId ? users[selectedUserId] : null;
-    // console.info('User check data:', selectedUser?.name);
+    // Фільтрація списку usersTg
+    const chatIds = [];
+    usersList?.forEach((u) => {
+        console.info('chatIds:', u.chatId);
 
-    // Стиль для чекбоксів
+        chatIds.push(Number(u.chatId || 0));
+    });
+    console.info('chatIds:', JSON.stringify(chatIds));
+    const filteredUsersTg = Object.entries(usersTg).filter(([chatId, user]) => {
+        return !(user.chatId === Number(searchTerm) || chatIds?.includes(user.chatId));
+    });
     const checkboxStyle = {
         width: '20px',
         height: '20px',
@@ -162,7 +183,7 @@ export default function UsersPage() {
 
     return (
         <div className="page-container">
-            {/* Хедер та статистика залишаються зверху */}
+            {/* Хедер та статистика */}
             <div className="analytics-header">
                 <div className="analytics-title-section">
                     <Users size={32} className="analytics-icon" />
@@ -170,47 +191,45 @@ export default function UsersPage() {
                         <h1 className="analytics-title">Управління користувачами</h1>
                     </div>
                 </div>
-                {/* <button onClick={fetchUsers} className="refresh-button" disabled={loading}>
-                    <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
-                    Оновити список
-                </button> */}
             </div>
 
-            {/* Новий макет (використовуємо класи з FilesListPage) */}
             <div className="files-layout">
-                {/* ========================== */}
-                {/* Ліва панель - Список     */}
-                {/* ========================== */}
+                {/* Ліва панель - Список користувачів */}
                 <div className="files-sidebar">
-                    <div className="sidebar-header">
-                        <h2 className="sidebar-title">Користувачі ({usersList.length})</h2>
+                    <div className="files-header">
+                        <h2 className="files-title">
+                            <Users size={20} />
+                            Користувачі ({usersList.length})
+                        </h2>
                     </div>
-
-                    {loading && (
+                    {loading ? (
                         <div className="sidebar-loading">
                             <div className="spinner"></div>
                         </div>
-                    )}
-
-                    {error && <div className="error-message">{error}</div>}
-
-                    {usersList.length > 0 && <div className="files-list">
-                        {usersList.map(([objectId, user]) => (
+                    ) : <div className="files-list">
+                        {usersList.map(([userId, user]) => (
                             <div
-                                key={objectId}
-                                className={`file-item ${selectedUserId === objectId ? 'active' : ''}`}
-                                onClick={() => setSelectedUserId(objectId)}
+                                key={userId}
+                                onClick={() => setSelectedUserId(userId)}
+                                className={`file-item ${selectedUserId === userId ? 'active' : ''}`}
                             >
-                                <div className="file-item-content">
-                                    <UserCheck size={20} className="file-icon" />
-                                    <div className="file-info">
-                                        <h3 className="file-name">{user.name || 'n/a'}</h3>
-                                        <div className="file-meta" style={{ marginTop: '4px' }}>
-                                            <span className="file-meta-item">
-                                                <Mail size={14} />
-                                                {user.email || 'n/a'}
-                                            </span>
+                                <div className="file-content">
+                                    <div className="file-header">
+                                        <div className="file-name">
+                                            <UserCheck size={18} />
+                                            {user.name || 'n/a'}
                                         </div>
+                                    </div>
+                                    <div className="file-details">
+                                        <span className="file-stat">
+                                            <Hash size={14} />
+                                            {user.chatId}
+                                        </span>
+                                        <br />
+                                        <span className="file-stat">
+                                            <Mail size={14} />
+                                            {user.email || 'n/a'}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -218,9 +237,7 @@ export default function UsersPage() {
                     </div>}
                 </div>
 
-                {/* ========================== */}
-                {/* Права панель - Редактор   */}
-                {/* ========================== */}
+                {/* Права панель - Редактор */}
                 <div className="files-content">
                     {loading && (
                         <div className="content-loading">
@@ -245,7 +262,6 @@ export default function UsersPage() {
                                         <span>ID: {selectedUser.chatId}</span>
                                     </div>
                                 </div>
-                                {/* Кнопка збереження тепер тут */}
                                 <button
                                     onClick={handleSave}
                                     className="backend-upload-button"
@@ -263,7 +279,6 @@ export default function UsersPage() {
 
                             {/* Форма редагування */}
                             <div className="user-edit-form">
-
                                 {/* Основна інформація */}
                                 <div className="form-grid">
                                     <div className="form-group-flex">
@@ -279,7 +294,6 @@ export default function UsersPage() {
                                     </div>
                                     <div className="form-group-flex">
                                         <label className="form-label"><Mail size={18} /> Email</label>
-                                        {/* <p className="form-static-text">{selectedUser.email || 'n/a'}</p> */}
                                         <input
                                             type="text"
                                             value={selectedUser.email || ''}
@@ -291,15 +305,83 @@ export default function UsersPage() {
                                     </div>
                                     <div className="form-group-flex">
                                         <label className="form-label"><Hash size={18} /> Chat ID</label>
-                                        {/*<p className="form-static-text">{selectedUser.chatId}</p>*/}
-                                        <input
-                                            type="text"
-                                            value={selectedUser.chatId || ''}
-                                            onChange={(e) => handleInputChange(selectedUserId, 'chatId', e.target.value)}
-                                            placeholder="n/a"
-                                            className="form-input"
-                                            disabled={backupUser?.chatId}
-                                        />
+                                        <div style={{ position: 'relative' }} ref={dropdownRef}>
+                                            <div style={{ position: 'relative' }}>
+                                                <input
+                                                    type="text"
+                                                    value={searchTerm || selectedUser.chatId || ''}
+                                                    onChange={(e) => {
+                                                        setSearchTerm(e.target.value);
+                                                        handleInputChange(selectedUserId, 'chatId', e.target.value);
+                                                        setShowDropdown(true);
+                                                    }}
+                                                    onFocus={() => setShowDropdown(true)}
+                                                    placeholder="Почніть вводити chatId або ім'я"
+                                                    className="form-input"
+                                                    disabled={backupUser?.chatId}
+                                                    style={{ paddingRight: '40px' }}
+                                                />
+                                                {!backupUser?.chatId && <ChevronDown
+                                                    size={20}
+                                                    style={{
+                                                        position: 'absolute',
+                                                        // right: '12px', 
+                                                        top: '50%',
+                                                        transform: 'translateY(-50%)',
+                                                        cursor: 'pointer',
+                                                        color: '#666'
+                                                    }}
+                                                    onClick={() => !backupUser?.chatId && setShowDropdown(!showDropdown)}
+                                                />}
+                                            </div>
+
+                                            {showDropdown && !backupUser?.chatId && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: '100%',
+                                                    left: 0,
+                                                    right: 0,
+                                                    maxHeight: '300px',
+                                                    overflowY: 'auto',
+                                                    backgroundColor: 'white',
+                                                    border: '1px solid #e0e0e0',
+                                                    borderRadius: '8px',
+                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                                                    zIndex: 1000,
+                                                    marginTop: '4px'
+                                                }}>
+                                                    {filteredUsersTg.length > 0 ? (
+                                                        filteredUsersTg.map(([chatId, user]) => (
+                                                            <div
+                                                                key={chatId}
+                                                                onClick={() => handleSelectChatId(chatId)}
+                                                                style={{
+                                                                    padding: '12px 16px',
+                                                                    cursor: 'pointer',
+                                                                    borderBottom: '1px solid #f0f0f0',
+                                                                    transition: 'background-color 0.2s',
+                                                                }}
+                                                                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                                                onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
+                                                            >
+                                                                <div style={{ fontWeight: '500', color: '#333', marginBottom: '4px' }}>
+                                                                    <Hash size={14} style={{ display: 'inline', marginRight: '6px' }} />
+                                                                    {chatId}
+                                                                </div>
+                                                                <div style={{ fontSize: '13px', color: '#666' }}>
+                                                                    <Users size={12} style={{ display: 'inline', marginRight: '6px' }} />
+                                                                    {user.name || 'Без імені'}
+                                                                </div>
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div style={{ padding: '16px', textAlign: 'center', color: '#999' }}>
+                                                            Користувачів не знайдено
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
 
