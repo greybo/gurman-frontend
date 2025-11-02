@@ -10,19 +10,23 @@ import {
 // Використовуємо той самий префікс, що й в AnalyticsPage
 const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
 
+const usersDbPath = `${prefixPath}/user_db`;
+const usersTgDbPath = `${prefixPath}/tg_user_db`;
+
 export default function UsersPage() {
     const [users, setUsers] = useState({});
     const [usersTg, setUsersTg] = useState({});
+    const [currentUsersTg, setCurrentUsersTg] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isSaving, setIsSaving] = useState(false); // Тепер це один прапорець
     const [selectedUserId, setSelectedUserId] = useState(null); // ID вибраного користувача
-    const [currentUser, setCurrentUser] = useState(null);
+    const [backupUser, setBackupUser] = useState(null);
 
     const fetchUsers = () => {
         setLoading(true);
         setError('');
-        const usersRef = ref(database, `${prefixPath}/user_db`);
+        const usersRef = ref(database, usersDbPath);
 
         onValue(usersRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -46,7 +50,7 @@ export default function UsersPage() {
 
     useEffect(() => {
         setLoading(true);
-        const usersRef = ref(database, `${prefixPath}/tg_user_db`);
+        const usersRef = ref(database, usersTgDbPath);
         onValue(usersRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
@@ -62,12 +66,23 @@ export default function UsersPage() {
             setError('Помилка завантаження даних');
             setLoading(false);
         }, { onlyOnce: true });
-    }, []);
+    }, [backupUser]);
 
     useEffect(() => {
-        if (!users) return
-        setCurrentUser(users[selectedUserId] || null);
-    }, [selectedUserId]);
+        if (!users && !selectedUserId) return;
+
+        const user = users[selectedUserId] || null;
+        const tg = usersTg[backupUser?.chatId] || {};
+
+        setCurrentUsersTg(tg);
+
+        if (user && tg) {
+            handleInputChange(user?.chatId, 'overScan', tg?.overScan || false);
+            handleInputChange(user?.chatId, 'sendErrorMessage', tg?.sendErrorMessage || false);
+        }
+
+        setBackupUser(user);
+    }, [usersTg, selectedUserId]);
 
     // Обробники, як і раніше, змінюють загальний стан 'users'
     const handleInputChange = (userId, field, value) => {
@@ -97,22 +112,15 @@ export default function UsersPage() {
         setIsSaving(true);
 
         const userToSave = users[selectedUserId];
-        /*
-        const updates = {};
-        updates[`/release/tg_user_db/${key}`] = { name: "Новий запис" };
-        updates[`/some/other/path/${key}`] = true;
-        
-        await update(ref(database), updates);
-        */
 
-        // const usersDbRef = ref(database, `${prefixPath}/user_db_v2`);
-        // const basePath = `${prefixPath}/user_db`;
-        // const userRef = userToSave.objectId
-        //     ? ref(database, `${basePath}/${userToSave.objectId}`)
-        //     : push(ref(database, basePath));
-        // const objectId = userToSave.objectId || userRef.key;
+        // const updates = {};
+        // updates[`/some/tg_user_db/${userTgToSave.chatId}`] = { testField: "testField" };
+        // updates[`/some/tg_user_db/${userTgToSave.chatId}/name`] = userToSave.name || '';
+        // updates[`/some/tg_user_db/${userTgToSave.chatId}/email`] = userToSave.email || '';
+        // updates[`/some/tg_user_db/${userTgToSave.chatId}/otherField`] = "otherValue 1";
+        // await update(ref(database), updates);
 
-        const userRef = ref(database, `${prefixPath}/user_db/${selectedUserId}`);
+        const userRef = ref(database, `${usersDbPath}/${selectedUserId}`);
         // console.info('objectId:', selectedUserId);
 
         try {
@@ -121,7 +129,7 @@ export default function UsersPage() {
                 userId: userToSave.userId || '',
                 email: userToSave.email || '',
                 name: userToSave.name || '',
-                addedToList: userToSave.addedToList || false,
+                overScan: userToSave.overScan || false,
                 sendErrorMessage: userToSave.sendErrorMessage || false,
                 invoice: userToSave.invoice || false,
                 orderAll: userToSave.orderAll || false,
@@ -134,6 +142,7 @@ export default function UsersPage() {
         } finally {
             setIsSaving(false);
         }
+        setBackupUser(userToSave);
     };
 
     const usersList = Object.entries(users);
@@ -198,7 +207,7 @@ export default function UsersPage() {
 
                     {error && <div className="error-message">{error}</div>}
 
-                    <div className="files-list">
+                    {usersList.length > 0 && <div className="files-list">
                         {usersList.map(([objectId, user]) => (
                             <div
                                 key={objectId}
@@ -219,7 +228,7 @@ export default function UsersPage() {
                                 </div>
                             </div>
                         ))}
-                    </div>
+                    </div>}
                 </div>
 
                 {/* ========================== */}
@@ -278,7 +287,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
                                             placeholder="n/a"
                                             className="form-input"
-                                            disabled={currentUser?.name}
+                                            disabled={backupUser?.name}
                                         />
                                     </div>
                                     <div className="form-group-flex">
@@ -290,7 +299,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleInputChange(selectedUserId, 'email', e.target.value)}
                                             placeholder="n/a"
                                             className="form-input"
-                                            disabled={currentUser?.email}
+                                            disabled={backupUser?.email}
                                         />
                                     </div>
                                     <div className="form-group-flex">
@@ -302,7 +311,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleInputChange(selectedUserId, 'chatId', e.target.value)}
                                             placeholder="n/a"
                                             className="form-input"
-                                            disabled={currentUser?.chatId}
+                                            disabled={backupUser?.chatId}
                                         />
                                     </div>
                                 </div>
@@ -313,10 +322,10 @@ export default function UsersPage() {
                                     <label className="checkbox-label">
                                         <input
                                             type="checkbox"
-                                            checked={!!selectedUser.addedToList}
-                                            onChange={(e) => handleCheckboxChange(selectedUserId, 'addedToList', e.target.checked)}
+                                            checked={!!selectedUser.overScan}
+                                            onChange={(e) => handleCheckboxChange(selectedUserId, 'overScan', e.target.checked)}
                                             style={checkboxStyle}
-                                            disabled={!usersTg.chatId}
+                                            disabled={!usersTg?.chatId}
                                         />
                                         <CheckCircle /> Додано до списку
                                     </label>
@@ -327,7 +336,7 @@ export default function UsersPage() {
                                             checked={!!selectedUser.sendErrorMessage}
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'sendErrorMessage', e.target.checked)}
                                             style={checkboxStyle}
-                                            disabled={!usersTg.chatId}
+                                            disabled={!usersTg?.chatId}
                                         />
                                         <AlertTriangle /> Повідомляти про помилки
                                     </label>
