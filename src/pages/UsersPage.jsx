@@ -50,12 +50,24 @@ export default function UsersPage() {
 
     useEffect(() => {
         setLoading(true);
-        const usersRef = ref(database, usersTgDbPath);
+        const usersRef = ref(database, `${usersTgDbPath}/`);
         onValue(usersRef, (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
                 setUsersTg(data);
+                const chatId = users[selectedUserId]?.chatId;
                 // console.info('Users (TG):', data);
+                const tg = data[chatId] || {};
+                setCurrentUsersTg(tg);
+
+                if (tg) {
+                    setBackupUser((user) => ({
+                        ...user,
+                        overScan: tg?.overScan || false,
+                        sendErrorMessage: tg?.sendErrorMessage || false,
+                    }));
+                }
+
             } else {
                 setUsersTg({});
                 setError('Користувачів не знайдено');
@@ -66,23 +78,17 @@ export default function UsersPage() {
             setError('Помилка завантаження даних');
             setLoading(false);
         }, { onlyOnce: true });
-    }, [backupUser]);
+    }, [selectedUserId]);
 
     useEffect(() => {
-        if (!users && !selectedUserId) return;
-
-        const user = users[selectedUserId] || null;
-        const tg = usersTg[backupUser?.chatId] || {};
-
-        setCurrentUsersTg(tg);
-
-        if (user && tg) {
-            handleInputChange(user?.chatId, 'overScan', tg?.overScan || false);
-            handleInputChange(user?.chatId, 'sendErrorMessage', tg?.sendErrorMessage || false);
+        if (!users || !selectedUserId) {
+            return;
         }
 
+        const user = users[selectedUserId] || null;
         setBackupUser(user);
-    }, [usersTg, selectedUserId]);
+
+    }, [selectedUserId]);
 
     // Обробники, як і раніше, змінюють загальний стан 'users'
     const handleInputChange = (userId, field, value) => {
@@ -147,7 +153,7 @@ export default function UsersPage() {
 
     const usersList = Object.entries(users);
     const selectedUser = selectedUserId ? users[selectedUserId] : null;
-    console.info('User check data:', selectedUser?.name);
+    // console.info('User check data:', selectedUser?.name);
 
     // Стиль для чекбоксів
     const checkboxStyle = {
