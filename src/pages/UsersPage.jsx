@@ -12,10 +12,12 @@ const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
 
 export default function UsersPage() {
     const [users, setUsers] = useState({});
+    const [usersTg, setUsersTg] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [isSaving, setIsSaving] = useState(false); // Тепер це один прапорець
     const [selectedUserId, setSelectedUserId] = useState(null); // ID вибраного користувача
+    const [currentUser, setCurrentUser] = useState(null);
 
     const fetchUsers = () => {
         setLoading(true);
@@ -42,12 +44,36 @@ export default function UsersPage() {
         fetchUsers();
     }, []);
 
+    useEffect(() => {
+        setLoading(true);
+        const usersRef = ref(database, `${prefixPath}/tg_user_db`);
+        onValue(usersRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.val();
+                setUsersTg(data);
+                // console.info('Users (TG):', data);
+            } else {
+                setUsersTg({});
+                setError('Користувачів не знайдено');
+            }
+            setLoading(false);
+        }, (err) => {
+            console.error('Помилка завантаження:', err);
+            setError('Помилка завантаження даних');
+            setLoading(false);
+        }, { onlyOnce: true });
+    }, []);
+
+    useEffect(() => {
+        setCurrentUser(users[selectedUserId] || null);
+    }, [users, selectedUserId]);
+
     // Обробники, як і раніше, змінюють загальний стан 'users'
-    const handleInputChange = (chatId, field, value) => {
+    const handleInputChange = (userId, field, value) => {
         setUsers(prevUsers => ({
             ...prevUsers,
-            [chatId]: {
-                ...prevUsers[chatId],
+            [userId]: {
+                ...prevUsers[userId],
                 [field]: value
             }
         }));
@@ -86,11 +112,10 @@ export default function UsersPage() {
         // const objectId = userToSave.objectId || userRef.key;
 
         const userRef = ref(database, `${prefixPath}/user_db/${selectedUserId}`);
-        console.info('objectId:', selectedUserId);
+        // console.info('objectId:', selectedUserId);
 
         try {
             await update(userRef, {
-                // objectId: selectedUserId || '',
                 chatId: userToSave.chatId || 0,
                 userId: userToSave.userId || '',
                 email: userToSave.email || '',
@@ -112,6 +137,7 @@ export default function UsersPage() {
 
     const usersList = Object.entries(users);
     const selectedUser = selectedUserId ? users[selectedUserId] : null;
+    console.info('User check data:', selectedUser?.name);
 
     // Стиль для чекбоксів
     const checkboxStyle = {
@@ -251,7 +277,7 @@ export default function UsersPage() {
                                             onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
                                             placeholder="n/a"
                                             className="form-input"
-                                            disabled={false}
+                                            disabled={currentUser?.name}
                                         />
                                     </div>
                                     <div className="form-group-flex">
@@ -263,12 +289,20 @@ export default function UsersPage() {
                                             onChange={(e) => handleInputChange(selectedUserId, 'email', e.target.value)}
                                             placeholder="n/a"
                                             className="form-input"
-                                            disabled={true}
+                                            disabled={currentUser?.email}
                                         />
                                     </div>
                                     <div className="form-group-flex">
                                         <label className="form-label"><Hash size={18} /> Chat ID</label>
-                                        <p className="form-static-text">{selectedUser.chatId}</p>
+                                        {/*<p className="form-static-text">{selectedUser.chatId}</p>*/}
+                                        <input
+                                            type="text"
+                                            value={selectedUser.chatId || ''}
+                                            onChange={(e) => handleInputChange(selectedUserId, 'chatId', e.target.value)}
+                                            placeholder="n/a"
+                                            className="form-input"
+                                            disabled={currentUser?.chatId}
+                                        />
                                     </div>
                                 </div>
 
@@ -281,7 +315,7 @@ export default function UsersPage() {
                                             checked={!!selectedUser.addedToList}
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'addedToList', e.target.checked)}
                                             style={checkboxStyle}
-                                            disabled={false}
+                                            disabled={!usersTg.chatId}
                                         />
                                         <CheckCircle /> Додано до списку
                                     </label>
@@ -292,7 +326,7 @@ export default function UsersPage() {
                                             checked={!!selectedUser.sendErrorMessage}
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'sendErrorMessage', e.target.checked)}
                                             style={checkboxStyle}
-                                            disabled={false}
+                                            disabled={!usersTg.chatId}
                                         />
                                         <AlertTriangle /> Повідомляти про помилки
                                     </label>
