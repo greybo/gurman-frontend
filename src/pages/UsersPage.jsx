@@ -49,7 +49,6 @@ export default function UsersPage() {
     }, []);
 
     useEffect(() => {
-        setLoading(true);
         const usersRef = ref(database, `${usersTgDbPath}/`);
         onValue(usersRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -72,11 +71,9 @@ export default function UsersPage() {
                 setUsersTg({});
                 setError('Користувачів не знайдено');
             }
-            setLoading(false);
         }, (err) => {
             console.error('Помилка завантаження:', err);
             setError('Помилка завантаження даних');
-            setLoading(false);
         }, { onlyOnce: true });
     }, [selectedUserId]);
 
@@ -171,7 +168,6 @@ export default function UsersPage() {
                     <Users size={32} className="analytics-icon" />
                     <div>
                         <h1 className="analytics-title">Управління користувачами</h1>
-                        {/* <p className="analytics-subtitle">Список користувачів з `release/tg_user_db`</p> */}
                     </div>
                 </div>
                 {/* <button onClick={fetchUsers} className="refresh-button" disabled={loading}>
@@ -179,21 +175,6 @@ export default function UsersPage() {
                     Оновити список
                 </button> */}
             </div>
-
-            {/* <div className="stats-grid">
-                <div className="stat-card total">
-                    <div className="stat-value">{usersList.length}</div>
-                    <div className="stat-label">Всього користувачів</div>
-                </div>
-                <div className="stat-card success">
-                    <div className="stat-value">{usersList.filter(([, u]) => u.addedToList).length}</div>
-                    <div className="stat-label">Added To List</div>
-                </div>
-                <div className="stat-card error">
-                    <div className="stat-value">{usersList.filter(([, u]) => u.sendErrorMessage).length}</div>
-                    <div className="stat-label">Send Error</div>
-                </div>
-            </div> */}
 
             {/* Новий макет (використовуємо класи з FilesListPage) */}
             <div className="files-layout">
