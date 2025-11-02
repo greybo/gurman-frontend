@@ -65,8 +65,9 @@ export default function UsersPage() {
     }, []);
 
     useEffect(() => {
+        if (!users) return
         setCurrentUser(users[selectedUserId] || null);
-    }, [users, selectedUserId]);
+    }, [selectedUserId]);
 
     // Обробники, як і раніше, змінюють загальний стан 'users'
     const handleInputChange = (userId, field, value) => {
