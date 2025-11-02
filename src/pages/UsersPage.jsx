@@ -331,9 +331,9 @@ export default function UsersPage() {
                                             checked={!!selectedUser.overScan}
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'overScan', e.target.checked)}
                                             style={checkboxStyle}
-                                            disabled={!usersTg?.chatId}
+                                            disabled={!currentUsersTg?.chatId}
                                         />
-                                        <CheckCircle /> Додано до списку
+                                        <CheckCircle /> Перевищення сканування
                                     </label>
 
                                     <label className="checkbox-label">
@@ -342,7 +342,7 @@ export default function UsersPage() {
                                             checked={!!selectedUser.sendErrorMessage}
                                             onChange={(e) => handleCheckboxChange(selectedUserId, 'sendErrorMessage', e.target.checked)}
                                             style={checkboxStyle}
-                                            disabled={!usersTg?.chatId}
+                                            disabled={!currentUsersTg?.chatId}
                                         />
                                         <AlertTriangle /> Повідомляти про помилки
                                     </label>
