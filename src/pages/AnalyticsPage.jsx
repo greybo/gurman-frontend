@@ -6,6 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { BarChart2, Calendar as CalendarIcon, User, Activity, ShoppingCart } from 'lucide-react';
 
 const prefixPath = 'release';
+// const prefixPath = 'DEBUG';
 
 export default function AnalyticsPage() {
   const today = new Date();
