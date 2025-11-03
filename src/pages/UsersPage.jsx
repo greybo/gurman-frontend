@@ -163,16 +163,13 @@ export default function UsersPage() {
 
     const usersList = Object.entries(users);
     const selectedUser = selectedUserId ? users[selectedUserId] : null;
-    // Фільтрація списку usersTg
-    const chatIds = [];
-    usersList?.forEach((u) => {
-        console.info('chatIds:', u.chatId);
+    // usersList.map(([userId, user]) => (
+    //     console.info('chatIds 0:', userId, user.chatId)
+    // ));
 
-        chatIds.push(Number(u.chatId || 0));
-    });
-    console.info('chatIds:', JSON.stringify(chatIds));
+    const chatIds = Object.values(users).map(user => user.chatId ||'0');
     const filteredUsersTg = Object.entries(usersTg).filter(([chatId, user]) => {
-        return !(user.chatId === Number(searchTerm) || chatIds?.includes(user.chatId));
+        return !(user.chatId.toString() === searchTerm.toString() || chatIds?.includes(user.chatId.toString()));
     });
     const checkboxStyle = {
         width: '20px',
