@@ -163,11 +163,8 @@ export default function UsersPage() {
 
     const usersList = Object.entries(users);
     const selectedUser = selectedUserId ? users[selectedUserId] : null;
-    // usersList.map(([userId, user]) => (
-    //     console.info('chatIds 0:', userId, user.chatId)
-    // ));
 
-    const chatIds = Object.values(users).map(user => user.chatId ||'0');
+    const chatIds = Object.values(users).map(user => user.chatId || '0');
     const filteredUsersTg = Object.entries(usersTg).filter(([chatId, user]) => {
         return !(user.chatId.toString() === searchTerm.toString() || chatIds?.includes(user.chatId.toString()));
     });
