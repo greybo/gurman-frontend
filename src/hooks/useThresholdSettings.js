@@ -35,7 +35,7 @@ export default function useThresholdSettings() {
       if (snapshot.exists()) {
         const data = snapshot.val();
         setUsersTg(data);
-        console.info('Користувачі:', Object.entries(data).map(([key, user]) => '#' + key + ', name: ' + (user.name || 'n/a')).join(', '));
+        // console.info('Користувачі:', Object.entries(data).map(([key, user]) => '#' + key + ', name: ' + (user.name || 'n/a')).join(', '));
       } else {
         setUsersTg({});
         setError('Користувачів не знайдено');
@@ -92,7 +92,7 @@ export default function useThresholdSettings() {
 
     update(ref(database, `${usersTgDbPath}/${chatId}`), {
       [field]: checked,
-      chatId: chatId
+    //   chatId: chatId
     });
   };
 
