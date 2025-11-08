@@ -2482,7 +2482,7 @@ td[style*="text-align: center"] {
 .users-dropdown-toggle {
   position: absolute;
   top: 50%;
-  right: 1px;
+  right: 10px;
   transform: translateY(-50%);
   cursor: pointer;
   color: #666;
