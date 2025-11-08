@@ -1,7 +1,7 @@
 // src/pages/SettingsPage.jsx
 import React, { useState, useEffect } from 'react';
 import { database } from '../firebase';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set, update } from 'firebase/database';
 import { DB_PATH, usersTgDbPath } from '../PathDb';
 
 export default function SettingsPage() {
@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [usersTg, setUsersTg] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState({});
 
   useEffect(() => {
     // Реальний читання з Firebase Realtime Database
@@ -34,7 +35,6 @@ export default function SettingsPage() {
         const data = snapshot.val();
         setUsersTg(data);
         console.info('Користувачі:', Object.entries(data).map(([key, user]) => '#' + key + ', name: ' + (user.name || 'n/a')).join(', '));
-
       } else {
         setUsersTg({});
         setError('Користувачів не знайдено');
@@ -55,6 +55,28 @@ export default function SettingsPage() {
     const minutes = pad(d.getMinutes());
     const seconds = pad(d.getSeconds());
     return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+  };
+
+  const handleUserSelect = (chatId) => {
+    setSelectedUsers((prev) => ({
+      ...prev,
+      [chatId]: !prev[chatId]
+    }));
+  };
+
+  const handleUserCheckBox = (chatId, field, checked) => {
+    setUsersTg(prevUsers => ({
+      ...prevUsers,
+      [chatId]: {
+        ...prevUsers[chatId],
+        [field]: checked
+      }
+    }));
+
+    update(ref(database, `${usersTgDbPath}/${chatId}`), {
+      [field]: checked,
+      chatId: chatId
+    });
   };
 
   const saveSettings = async () => {
@@ -106,7 +128,7 @@ export default function SettingsPage() {
           {activeItem === 'scan-threshold' && (
             <div>
               <h2 className="content-title">Встановити поріг сканувань</h2>
-              <p className="page-subtitle" style={{ marginBottom: 16 }}>
+              <p className="page-subtitle settings-subtitle-margin">
                 Вкажіть числове значення порогу для сканувань
               </p>
               <div className="threshold-form">
@@ -119,8 +141,7 @@ export default function SettingsPage() {
                 />
                 <input
                   type="text"
-                  className="settings-input"
-                  style={{ width: 360 }}
+                  className="settings-input settings-input-message"
                   placeholder="Текст повідомлення"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
@@ -130,13 +151,42 @@ export default function SettingsPage() {
                 </button>
               </div>
               {error && (
-                <div className="error-message" style={{ margin: '16px 0' }}>{error}</div>
+                <div className="error-message settings-error-margin">{error}</div>
               )}
               {updateDate && (
-                <div className="data-info" style={{ marginTop: 16 }}>
+                <div className="data-info settings-update-info-margin">
                   Останнє оновлення: {updateDate}
                 </div>
               )}
+
+              <div className="users-list-container">
+                <h3 className="content-title">Користувачі Telegram</h3>
+                <div className="users-list-title-container">
+                  {typeof usersTg === 'object' && Object.keys(usersTg).length > 0 ? (
+                    <div className="users-list">
+                      {Object.entries(usersTg).map(([key, user]) => (
+                        <div
+                          key={key}
+                          className={`user-item ${user.scanThreshold === true ? 'selected' : ''}`}
+                        // onClick={() => handleUserSelect(key)}
+                        >{console.log('Rendering user item for chat ID:', user)}
+                          <input
+                            type="checkbox"
+                            checked={user.scanThreshold === true}
+                            onChange={(e) => handleUserCheckBox(key, 'scanThreshold', e.target.checked)}
+                          />
+                          <div className="user-item-content">
+                            <span><strong>Chat ID:</strong> {key}</span>
+                            <span><strong>Ім'я:</strong> {user.name || 'N/A'}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="users-empty">Користувачів не знайдено</p>
+                  )}
+                </div>
+              </div>
             </div>
           )}
 

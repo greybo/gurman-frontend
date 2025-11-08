@@ -2190,3 +2190,93 @@ td[style*="text-align: center"] {
   height: 20px;
   color: #6b7280;
 }
+
+/* ========================== */
+/* Telegram Users List */
+/* ========================== */
+
+.users-list-container {
+  margin-top: 32px;
+}
+
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.user-item {
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  margin-bottom: 8px;
+  background-color: #f9f9f9;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.user-item:hover {
+  border-color: #d1d5db;
+  background-color: #f5f5f5;
+}
+
+.user-item.selected {
+  background-color: #ede9fe;
+  border-color: #5b5fc7;
+}
+
+.user-item input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #5b5fc7;
+  flex-shrink: 0;
+}
+
+.user-item-content {
+  display: flex;
+  justify-content: space-between;
+  flex: 1;
+  gap: 16px;
+}
+
+.user-item-content span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f;
+}
+
+.user-item-content strong {
+  color: #374151;
+}
+
+.users-empty {
+  color: #666;
+  font-size: 14px;
+  padding: 16px;
+  text-align: center;
+}
+
+.users-list-title-container {
+  margin-top: 16px;
+}
+
+/* Additional settings styles */
+.settings-subtitle-margin {
+  margin-bottom: 16px;
+}
+
+.settings-input-message {
+  width: 360px;
+}
+
+.settings-error-margin {
+  margin: 16px 0;
+}
+
+.settings-update-info-margin {
+  margin-top: 16px;
+}
