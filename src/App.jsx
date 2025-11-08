@@ -10,7 +10,6 @@ import HomePage from './pages/HomePage';
 import FilesListPage from './pages/FilesListPage';
 import LoginPage from './pages/LoginPage';
 import AnalyticsPage from './pages/AnalyticsPage';
-import UsersPage from './pages/UsersPage'; // <-- 1. ІМПОРТ НОВОЇ СТОРІНКИ
 import SettingsPage from './pages/SettingsPage';
 
 function Navigation() {
@@ -37,13 +36,6 @@ function Navigation() {
               <span className="nav-title">Gurman</span>
             </div>
             <div className="nav-links">
-              {/* <Link
-                to="/"
-                className={`nav-link ${isActive('/') ? 'active' : ''}`}
-              >
-                <Home size={18} />
-                Головна
-              </Link> */}
               <Link
                 to="/"
                 className={`nav-link ${isActive('/') ? 'active' : ''}`}
@@ -72,23 +64,6 @@ function Navigation() {
                 <SettingsIcon size={18} />
                 Налаштування
               </Link>
-              
-              {/* 2. ДОДАНО ЛІНК НА НОВУ СТОРІНКУ */}
-              <Link
-                to="/users"
-                className={`nav-link ${isActive('/users') ? 'active' : ''}`}
-              >
-                <User size={18} />
-                Робітники
-              </Link>
-
-              {/* <Link
-                to="/test"
-                className={`nav-link ${isActive('/test') ? 'active' : ''}`}
-              >
-                <TestTube2 size={18} />
-                Тестова сторінка
-              </Link> */}
               <div className="nav-user">
                 <User size={16} />
                 <span>{currentUser.email}</span>
@@ -111,14 +86,6 @@ function AppRoutes() {
       <Navigation />
       <Routes>
         <Route path="/login" element={<LoginPage />} />
-        {/* <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <HomePage />
-            </PrivateRoute>
-          }
-        /> */}
         <Route
           path="/"
           element={
@@ -143,16 +110,6 @@ function AppRoutes() {
             </PrivateRoute>
           }
         />
-
-        {/* 3. ДОДАНО РОУТ ДЛЯ НОВОЇ СТОРІНКИ */}
-        <Route
-          path="/users"
-          element={
-            <PrivateRoute>
-              <UsersPage />
-            </PrivateRoute>
-          }
-        />
         <Route
           path="/settings"
           element={
@@ -161,7 +118,6 @@ function AppRoutes() {
             </PrivateRoute>
           }
         />
-        
         <Route
           path="/test"
           element={
