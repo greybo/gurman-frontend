@@ -1,17 +1,12 @@
 // src/pages/UsersPage.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { database } from '../firebase';
-import { ref, onValue, update, push } from 'firebase/database';
+import { ref, onValue, update } from 'firebase/database';
 import {
     Users, Hash, CheckCircle, AlertTriangle, Save, RefreshCw,
     Mail, FileText, Package, Boxes, SearchCode, UserCheck, ChevronDown
 } from 'lucide-react';
-
-// Використовуємо той самий префікс, що й в AnalyticsPage
-const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
-
-const usersDbPath = `${prefixPath}/user_db`;
-const usersTgDbPath = `${prefixPath}/tg_user_db`;
+import { usersDbPath, usersTgDbPath } from '../PathDb';
 
 export default function UsersPage() {
     const [users, setUsers] = useState({});

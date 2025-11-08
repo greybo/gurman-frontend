@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { database } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
+import { DB_PATH, usersTgDbPath } from '../PathDb';
 
 export default function SettingsPage() {
   const [activeItem, setActiveItem] = useState('scan-threshold');
@@ -10,8 +11,7 @@ export default function SettingsPage() {
   const [updateDate, setUpdateDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-
-  const DB_PATH = 'release/scan_threshold_message_db';
+  const [usersTg, setUsersTg] = useState([]);
 
   useEffect(() => {
     // Реальний читання з Firebase Realtime Database
@@ -25,6 +25,24 @@ export default function SettingsPage() {
       }
     });
     return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    const usersRef = ref(database, `${usersTgDbPath}/`);
+    onValue(usersRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        setUsersTg(data);
+        console.info('Користувачі:', Object.entries(data).map(([key, user]) => '#' + key + ', name: ' + (user.name || 'n/a')).join(', '));
+
+      } else {
+        setUsersTg({});
+        setError('Користувачів не знайдено');
+      }
+    }, (err) => {
+      console.error('Помилка завантаження:', err);
+      setError('Помилка завантаження даних');
+    }, { onlyOnce: true });
   }, []);
 
   const formatNow = () => {

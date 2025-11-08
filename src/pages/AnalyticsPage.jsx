@@ -4,9 +4,7 @@ import { database } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { BarChart2, Calendar as CalendarIcon, User, Activity, ShoppingCart } from 'lucide-react';
-
-const prefixPath = 'release';
-// const prefixPath = 'DEBUG';
+import { prefixPath } from '../PathDb';
 
 export default function AnalyticsPage() {
   const today = new Date();
