@@ -35,7 +35,6 @@ export default function SettingsPage() {
 
   // ===== SETTINGS EFFECTS =====
   useEffect(() => {
-    // Реальний читання з Firebase Realtime Database
     const r = ref(database, DB_PATH);
     const unsub = onValue(r, (snap) => {
       const val = snap.val();
@@ -131,7 +130,6 @@ export default function SettingsPage() {
 
   }, [selectedUserId]);
 
-  // Закриття dropdown при кліку поза ним
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -255,19 +253,12 @@ export default function SettingsPage() {
     }
   };
 
-  // Отримання відфільтрованих користувачів для dropdown
   const filteredUsersTg = Object.entries(usersTg).filter(([chatId, user]) => {
     const searchLower = searchTerm?.toLowerCase() || '';
     return chatId.includes(searchLower) || (user.name || '').toLowerCase().includes(searchLower);
   });
 
   const selectedUser = users[selectedUserId] || {};
-
-  const checkboxStyle = {
-    cursor: 'pointer',
-    width: '18px',
-    height: '18px',
-  };
 
   return (
     <div className="page-container">
@@ -376,78 +367,43 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '20px', height: 'calc(100vh - 250px)' }}>
+              <div className="users-management-grid">
                 {/* Список користувачів */}
-                <div style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  backgroundColor: '#f9f9f9',
-                  overflowY: 'auto'
-                }}>
-                  <h3 style={{ marginTop: 0, marginBottom: '16px', color: '#333' }}>Користувачі</h3>
+                <div className="users-list-panel">
+                  <h3>Користувачі</h3>
                   {loading ? (
-                    <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                      <RefreshCw size={20} style={{ animation: 'spin 1s linear infinite' }} />
+                    <div className="users-loading">
+                      <RefreshCw size={20} />
                       <p>Завантаження...</p>
                     </div>
                   ) : Object.keys(users).length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div className="users-list-flex">
                       {Object.entries(users).map(([userId, user]) => (
                         <button
                           key={userId}
                           onClick={() => setSelectedUserId(userId)}
-                          style={{
-                            padding: '12px',
-                            border: selectedUserId === userId ? '2px solid #007bff' : '1px solid #ddd',
-                            borderRadius: '6px',
-                            backgroundColor: selectedUserId === userId ? '#e7f3ff' : 'white',
-                            cursor: 'pointer',
-                            textAlign: 'left',
-                            transition: 'all 0.2s',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '4px'
-                          }}
+                          className={`user-list-button ${selectedUserId === userId ? 'active' : ''}`}
                         >
-                          <div style={{ fontWeight: '600', color: '#333', fontSize: '14px' }}>{user.name || 'N/A'}</div>
-                          <div style={{ fontSize: '11px', color: '#666' }}>{user.email || 'N/A'}</div>
+                          <div className="user-list-item-name">{user.name || 'N/A'}</div>
+                          <div className="user-list-item-email">{user.email || 'N/A'}</div>
                         </button>
                       ))}
                     </div>
                   ) : (
-                    <p style={{ color: '#666', textAlign: 'center', marginTop: '40px' }}>Користувачів не знайдено</p>
+                    <p className="users-empty-message">Користувачів не знайдено</p>
                   )}
                 </div>
 
                 {/* Редагування користувача */}
-                <div style={{
-                  border: '1px solid #ddd',
-                  borderRadius: '8px',
-                  padding: '16px',
-                  backgroundColor: '#fff',
-                  overflowY: 'auto'
-                }}>
+                <div className="users-edit-panel">
                   {selectedUserId ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <h3 style={{ margin: 0 }}>Редагування</h3>
+                    <div className="users-edit-content">
+                      <div className="users-edit-header">
+                        <h3>Редагування</h3>
                         <button
                           onClick={handleSaveUser}
                           disabled={isSaving}
-                          style={{
-                            padding: '8px 16px',
-                            backgroundColor: '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            opacity: isSaving ? 0.6 : 1,
-                            fontSize: '14px'
-                          }}
+                          className="users-save-button"
                         >
                           <Save size={16} />
                           {isSaving ? 'Збереження...' : 'Зберегти'}
@@ -455,194 +411,158 @@ export default function SettingsPage() {
                       </div>
 
                       {/* Базова інформація */}
-                      <div>
-                        <h4 style={{ margin: '0 0 12px 0', color: '#333', fontSize: '14px', fontWeight: '600' }}>Базова інформація</h4>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <div>
-                            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#555', fontSize: '13px' }}>
-                              <Mail size={14} style={{ display: 'inline', marginRight: '6px' }} />
-                              Email
-                            </label>
-                            <input
-                              type="email"
-                              className="form-input"
-                              value={selectedUser.email || ''}
-                              onChange={(e) => handleInputChange(selectedUserId, 'email', e.target.value)}
-                              placeholder="user@example.com"
-                              disabled
-                              style={{ opacity: 0.6, cursor: 'not-allowed', fontSize: '13px' }}
-                            />
-                          </div>
+                      <div className="users-form-section">
+                        <h4 className="users-form-section-title">Базова інформація</h4>
+                        <div className="users-form-group">
+                          <label className="users-form-label">
+                            <Mail size={14} />
+                            Email
+                          </label>
+                          <input
+                            type="email"
+                            className="users-form-input"
+                            value={selectedUser.email || ''}
+                            onChange={(e) => handleInputChange(selectedUserId, 'email', e.target.value)}
+                            placeholder="user@example.com"
+                            disabled
+                          />
+                        </div>
 
-                          <div>
-                            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#555', fontSize: '13px' }}>
-                              <Users size={14} style={{ display: 'inline', marginRight: '6px' }} />
-                              Ім'я
-                            </label>
+                        <div className="users-form-group">
+                          <label className="users-form-label">
+                            <Users size={14} />
+                            Ім'я
+                          </label>
+                          <input
+                            type="text"
+                            className="users-form-input"
+                            value={selectedUser.name || ''}
+                            onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
+                            placeholder="Ім'я користувача"
+                            disabled
+                          />
+                        </div>
+
+                        <div className="users-form-group">
+                          <label className="users-form-label">
+                            <Hash size={14} />
+                            Chat ID (Telegram)
+                          </label>
+                          <div className="users-form-input-wrapper" ref={dropdownRef}>
                             <input
                               type="text"
-                              className="form-input"
-                              value={selectedUser.name || ''}
-                              onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
-                              placeholder="Ім'я користувача"
-                              disabled
-                              style={{ opacity: 0.6, cursor: 'not-allowed', fontSize: '13px' }}
+                              value={searchTerm || selectedUser.chatId || ''}
+                              onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                handleInputChange(selectedUserId, 'chatId', e.target.value);
+                                setShowDropdown(true);
+                              }}
+                              onFocus={() => setShowDropdown(true)}
+                              placeholder="Почніть вводити chatId або ім'я"
+                              className="users-form-input"
+                              disabled={backupUser?.chatId}
                             />
-                          </div>
+                            {!backupUser?.chatId && (
+                              <button
+                                className="users-dropdown-toggle"
+                                onClick={() => !backupUser?.chatId && setShowDropdown(!showDropdown)}
+                                type="button"
+                              >
+                                {/* <ChevronDown size={18} /> */}
+                              </button>
+                            )}
 
-                          <div>
-                            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '500', color: '#555', fontSize: '13px' }}>
-                              <Hash size={14} style={{ display: 'inline', marginRight: '6px' }} />
-                              Chat ID (Telegram)
-                            </label>
-                            <div style={{ position: 'relative' }} ref={dropdownRef}>
-                              <div style={{ position: 'relative' }}>
-                                <input
-                                  type="text"
-                                  value={searchTerm || selectedUser.chatId || ''}
-                                  onChange={(e) => {
-                                    setSearchTerm(e.target.value);
-                                    handleInputChange(selectedUserId, 'chatId', e.target.value);
-                                    setShowDropdown(true);
-                                  }}
-                                  onFocus={() => setShowDropdown(true)}
-                                  placeholder="Почніть вводити chatId або ім'я"
-                                  className="form-input"
-                                  disabled={backupUser?.chatId}
-                                  style={{ paddingRight: '40px', fontSize: '13px' }}
-                                />
-                                {!backupUser?.chatId && <ChevronDown
-                                  size={18}
-                                  style={{
-                                    position: 'absolute',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    cursor: 'pointer',
-                                    color: '#666'
-                                  }}
-                                  onClick={() => !backupUser?.chatId && setShowDropdown(!showDropdown)}
-                                />}
-                              </div>
-
-                              {showDropdown && !backupUser?.chatId && (
-                                <div style={{
-                                  position: 'absolute',
-                                  top: '100%',
-                                  left: 0,
-                                  right: 0,
-                                  maxHeight: '250px',
-                                  overflowY: 'auto',
-                                  backgroundColor: 'white',
-                                  border: '1px solid #e0e0e0',
-                                  borderRadius: '6px',
-                                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                                  zIndex: 1000,
-                                  marginTop: '4px'
-                                }}>
-                                  {filteredUsersTg.length > 0 ? (
-                                    filteredUsersTg.map(([chatId, user]) => (
-                                      <div
-                                        key={chatId}
-                                        onClick={() => handleSelectChatId(chatId)}
-                                        style={{
-                                          padding: '10px 12px',
-                                          cursor: 'pointer',
-                                          borderBottom: '1px solid #f0f0f0',
-                                          transition: 'background-color 0.2s',
-                                          fontSize: '13px'
-                                        }}
-                                        onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                                        onMouseLeave={(e) => e.target.style.backgroundColor = 'white'}
-                                      >
-                                        <div style={{ fontWeight: '500', color: '#333', marginBottom: '2px' }}>
-                                          <Hash size={12} style={{ display: 'inline', marginRight: '4px' }} />
-                                          {chatId}
-                                        </div>
-                                        <div style={{ fontSize: '12px', color: '#666' }}>
-                                          <Users size={11} style={{ display: 'inline', marginRight: '4px' }} />
-                                          {user.name || 'Без імені'}
-                                        </div>
+                            {showDropdown && !backupUser?.chatId && (
+                              <div className="users-dropdown-menu">
+                                {filteredUsersTg.length > 0 ? (
+                                  filteredUsersTg.map(([chatId, user]) => (
+                                    <div
+                                      key={chatId}
+                                      onClick={() => handleSelectChatId(chatId)}
+                                      className="users-dropdown-item"
+                                    >
+                                      <div className="users-dropdown-item-id">
+                                        <Hash size={12} />
+                                        {chatId}
                                       </div>
-                                    ))
-                                  ) : (
-                                    <div style={{ padding: '12px', textAlign: 'center', color: '#999', fontSize: '13px' }}>
-                                      Не знайдено
+                                      <div className="users-dropdown-item-name">
+                                        <Users size={11} />
+                                        {user.name || 'Без імені'}
+                                      </div>
                                     </div>
-                                  )}
-                                </div>
-                              )}
-                            </div>
+                                  ))
+                                ) : (
+                                  <div className="users-dropdown-empty">
+                                    Не знайдено
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
 
                       {/* Чекбокси дозволів */}
                       <div>
-                        <h4 style={{ margin: '0 0 12px 0', color: '#333', fontSize: '14px', fontWeight: '600' }}>Дозволи</h4>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '10px' }}>
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+                        <h4 className="users-form-section-title">Дозволи</h4>
+                        <div className="users-permissions-grid">
+                          <label className="users-permission-label">
                             <input
                               type="checkbox"
                               checked={!!selectedUser.overScan}
                               onChange={(e) => handleCheckboxChange(selectedUserId, 'overScan', e.target.checked)}
-                              style={checkboxStyle}
                               disabled={!currentUsersTg?.chatId}
                             />
                             <CheckCircle size={16} />
                             Перевищення сканування
                           </label>
 
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+                          <label className="users-permission-label">
                             <input
                               type="checkbox"
                               checked={!!selectedUser.sendErrorMessage}
                               onChange={(e) => handleCheckboxChange(selectedUserId, 'sendErrorMessage', e.target.checked)}
-                              style={checkboxStyle}
                               disabled={!currentUsersTg?.chatId}
                             />
                             <AlertTriangle size={16} />
                             Повідомляти про помилки
                           </label>
 
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+                          <label className="users-permission-label">
                             <input
                               type="checkbox"
                               checked={!!selectedUser.invoice}
                               onChange={(e) => handleCheckboxChange(selectedUserId, 'invoice', e.target.checked)}
-                              style={checkboxStyle}
                             />
                             <FileText size={16} />
                             Накладна
                           </label>
 
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+                          <label className="users-permission-label">
                             <input
                               type="checkbox"
                               checked={!!selectedUser.orderAll}
                               onChange={(e) => handleCheckboxChange(selectedUserId, 'orderAll', e.target.checked)}
-                              style={checkboxStyle}
                             />
                             <Package size={16} />
                             Замовленя
                           </label>
 
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+                          <label className="users-permission-label">
                             <input
                               type="checkbox"
                               checked={!!selectedUser.volumeAndParams}
                               onChange={(e) => handleCheckboxChange(selectedUserId, 'volumeAndParams', e.target.checked)}
-                              style={checkboxStyle}
                             />
                             <Boxes size={16} />
                             Об'єми та Розміщення
                           </label>
 
-                          <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', fontSize: '13px' }}>
+                          <label className="users-permission-label">
                             <input
                               type="checkbox"
                               checked={!!selectedUser.searchCode}
                               onChange={(e) => handleCheckboxChange(selectedUserId, 'searchCode', e.target.checked)}
-                              style={checkboxStyle}
                             />
                             <SearchCode size={16} />
                             Пошук коду
@@ -651,7 +571,7 @@ export default function SettingsPage() {
                       </div>
                     </div>
                   ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#999' }}>
+                    <div className="users-edit-placeholder">
                       Виберіть користувача зі списку
                     </div>
                   )}
