@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { database } from '../firebase';
 import { ref, onValue, set, update } from 'firebase/database';
-import { DB_PATH, usersTgDbPath } from '../PathDb';
+import { thresholdDataDBPath, thresholdMessageDBPath, usersTgDbPath } from '../PathDb';
 
 export default function useThresholdSettings() {
   // State
@@ -16,7 +16,7 @@ export default function useThresholdSettings() {
 
   // Load settings from Firebase
   useEffect(() => {
-    const r = ref(database, DB_PATH);
+    const r = ref(database, thresholdMessageDBPath);
     const unsub = onValue(r, (snap) => {
       const val = snap.val();
       if (val) {
@@ -69,7 +69,8 @@ export default function useThresholdSettings() {
         updateDate: formatNow(),
         message: message || ''
       };
-      await set(ref(database, DB_PATH), data);
+      await set(ref(database, thresholdMessageDBPath), data);
+      await update(ref(database, thresholdDataDBPath), { messageSent: null });
       setUpdateDate(data.updateDate);
       alert('Налаштування збережено');
     } catch (e) {
@@ -92,7 +93,7 @@ export default function useThresholdSettings() {
 
     update(ref(database, `${usersTgDbPath}/${chatId}`), {
       [field]: checked,
-    //   chatId: chatId
+      //   chatId: chatId
     });
   };
 
