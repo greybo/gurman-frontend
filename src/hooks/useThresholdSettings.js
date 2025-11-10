@@ -12,7 +12,7 @@ export default function useThresholdSettings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [usersTg, setUsersTg] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState({});
+  // const [selectedUsers, setSelectedUsers] = useState({});
 
   // Load settings from Firebase
   useEffect(() => {
@@ -70,7 +70,7 @@ export default function useThresholdSettings() {
         message: message || ''
       };
       await set(ref(database, thresholdMessageDBPath), data);
-      await update(ref(database, thresholdDataDBPath), { messageSent: null });
+      await update(ref(database, thresholdDataDBPath()), { messageSent: null });
       setUpdateDate(data.updateDate);
       alert('Налаштування збережено');
     } catch (e) {
@@ -107,7 +107,7 @@ export default function useThresholdSettings() {
     error,
     saving,
     usersTg,
-    selectedUsers,
+    // selectedUsers,
     // Methods
     saveSettings,
     handleUserCheckBox
