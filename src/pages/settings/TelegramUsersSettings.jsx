@@ -33,10 +33,7 @@ export default function TelegramUsersSettings({
     <div>
       <h2 className="content-title">Telegram Користувачі</h2>
       <p className="page-subtitle settings-subtitle-margin">
-        Керуйте користувачами Telegram бота.
-      </p>
-      <p className="page-subtitle settings-subtitle-margin">
-        Посилання на Bot: https://t.me/GurmanInvoiceBot
+        Керуйте користувачами Telegram бота
       </p>
 
       {error && (
@@ -54,7 +51,7 @@ export default function TelegramUsersSettings({
 
           {/* Пошук */}
           <div style={{ padding: '1em' }}>
-            <div className="search-wrapper">
+            <div className="search-wrapper" style={{ position: 'relative' }}>
               <Search className="search-icon" />
               <input
                 type="text"
@@ -62,7 +59,7 @@ export default function TelegramUsersSettings({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
-                style={{ width: '80%' }}
+                style={{ width: '80%', paddingRight: '40px' }}
               />
               {searchTerm && (
                 <button
@@ -105,10 +102,6 @@ export default function TelegramUsersSettings({
                           <Hash size={14} />
                           {chatId}
                         </span>
-                        {/* <span className="file-meta-item">
-                          <MessageSquare size={14} />
-                          {user.text || 'немає тексту'}
-                        </span> */}
                       </div>
                     </div>
                   </div>
@@ -190,43 +183,7 @@ export default function TelegramUsersSettings({
                       className="form-input"
                     />
                   </div>
-
-                  {/* <div className="form-group-flex">
-                    <label className="form-label">
-                      <MessageSquare size={18} />
-                      Текст повідомлення
-                    </label>
-                    <input
-                      type="text"
-                      value={selectedUser.text || ''}
-                      onChange={(e) =>
-                        handleFieldChange(selectedUserId, 'text', e.target.value)
-                      }
-                      placeholder="Немає тексту"
-                      className="form-input"
-                    />
-                  </div> */}
-
-                  {/* <div className="form-group-flex">
-                    <label className="form-label">
-                      <Hash size={18} />
-                      Update ID
-                    </label>
-                    <input
-                      type="number"
-                      value={selectedUser.updateId ?? 0}
-                    //   onChange={(e) =>
-                    //     handleFieldChange(
-                    //       selectedUserId,
-                    //       'updateId',
-                    //       parseInt(e.target.value) || 0
-                    //     )
-                    //   }
-                      className="form-input"
-                      disabled
-                    />
-                  </div> */}
-                </div>
+                </div> 
 
                 {/* Налаштування */}
                 <h3 className="form-section-title">Налаштування</h3>
