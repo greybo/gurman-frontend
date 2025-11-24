@@ -53,7 +53,7 @@ export default function TelegramUsersSettings({
           </div>
 
           {/* Пошук */}
-          <div style={{ padding: '0 16px 16px' }}>
+          <div style={{ padding: '1em' }}>
             <div className="search-wrapper">
               <Search className="search-icon" />
               <input
@@ -62,7 +62,7 @@ export default function TelegramUsersSettings({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="search-input"
-                style={{ width: '100%' }}
+                style={{ width: '80%' }}
               />
               {searchTerm && (
                 <button
