@@ -38,7 +38,9 @@ export default function UsersManagement({
         </div>
       )}
 
-      <div className="users-management-grid">
+      {/* Додано alignItems: 'start', щоб колонки не розтягувались примусово на весь екран */}
+      <div className="users-management-grid" style={{ alignItems: 'start' }}>
+
         {/* Список користувачів */}
         <div className="users-list-panel">
           <h3>Користувачі</h3>
@@ -66,9 +68,15 @@ export default function UsersManagement({
         </div>
 
         {/* Редагування користувача */}
-        <div className="users-edit-panel">
+        {/* ВАЖЛИВО: Додано стилі сюди, щоб зняти обмеження висоти з батьківського блоку */}
+        <div className="users-edit-panel" style={{ height: 'auto', maxHeight: 'none', overflow: 'visible' }}>
           {selectedUserId ? (
-            <div className="users-edit-content">
+            <div className="users-edit-content"
+              style={{
+                height: 'auto',
+                maxHeight: 'none',
+                overflow: 'visible',
+              }}>
               <div className="users-edit-header">
                 <h3>Редагування</h3>
                 <button
@@ -114,12 +122,21 @@ export default function UsersManagement({
                   />
                 </div>
 
+                {/* Start - Chat ID dropdown list */}
                 <div className="users-form-group">
                   <label className="users-form-label">
                     <Hash size={14} />
                     Chat ID (Telegram)
                   </label>
-                  <div className="users-form-input-wrapper" ref={dropdownRef}>
+
+                  <div
+                    className="users-form-input-wrapper"
+                    ref={dropdownRef}
+                    style={{
+                      position: 'relative',
+                      width: '100%'
+                    }}
+                  >
                     <input
                       type="text"
                       value={searchTerm || selectedUser.chatId || ''}
@@ -132,12 +149,34 @@ export default function UsersManagement({
                       placeholder="Почніть вводити chatId або ім'я"
                       className="users-form-input"
                       disabled={backupUser?.chatId}
+                      style={{
+                        width: '100%',
+                        paddingRight: '40px',
+                        boxSizing: 'border-box'
+                      }}
                     />
+
+                    {/* Кнопка шеврона */}
                     {!backupUser?.chatId && (
                       <button
                         className="users-dropdown-toggle"
                         onClick={() => !backupUser?.chatId && setShowDropdown(!showDropdown)}
                         type="button"
+                        style={{
+                          position: 'absolute',
+                          right: '10px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          padding: '4px',
+                          zIndex: 5,
+                          color: '#6b7280'
+                        }}
                       >
                         <ChevronDown size={18} />
                       </button>
@@ -171,33 +210,14 @@ export default function UsersManagement({
                     )}
                   </div>
                 </div>
+                {/* End - Chat ID dropdown list */}
+
               </div>
 
               {/* Чекбокси дозволів */}
               <div>
                 <h4 className="users-form-section-title">Дозволи</h4>
                 <div className="users-permissions-grid">
-                  <label className="users-permission-label">
-                    <input
-                      type="checkbox"
-                      checked={!!selectedUser.overScan}
-                      onChange={(e) => handleCheckboxChange(selectedUserId, 'overScan', e.target.checked)}
-                      disabled={!currentUsersTg?.chatId}
-                    />
-                    <CheckCircle size={16} />
-                    Перевищення сканування
-                  </label>
-
-                  <label className="users-permission-label">
-                    <input
-                      type="checkbox"
-                      checked={!!selectedUser.sendErrorMessage}
-                      onChange={(e) => handleCheckboxChange(selectedUserId, 'sendErrorMessage', e.target.checked)}
-                      disabled={!currentUsersTg?.chatId}
-                    />
-                    <AlertTriangle size={16} />
-                    Повідомляти про помилки
-                  </label>
 
                   <label className="users-permission-label">
                     <input
@@ -207,6 +227,16 @@ export default function UsersManagement({
                     />
                     <FileText size={16} />
                     Накладна
+                  </label>
+
+                  <label className="users-permission-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.invoiceAll}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'invoiceAll', e.target.checked)}
+                    />
+                    <FileText size={16} />
+                    Всі накладні
                   </label>
 
                   <label className="users-permission-label">

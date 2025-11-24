@@ -145,6 +145,7 @@ export default function useUsersManagement() {
         overScan: userToSave.overScan || false,
         sendErrorMessage: userToSave.sendErrorMessage || false,
         invoice: userToSave.invoice || false,
+        invoiceAll: userToSave.invoiceAll || false,
         orderAll: userToSave.orderAll || false,
         volumeAndParams: userToSave.volumeAndParams || false,
         searchCode: userToSave.searchCode || false,
