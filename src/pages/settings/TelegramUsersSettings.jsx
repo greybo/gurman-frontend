@@ -33,7 +33,10 @@ export default function TelegramUsersSettings({
     <div>
       <h2 className="content-title">Telegram Користувачі</h2>
       <p className="page-subtitle settings-subtitle-margin">
-        Керуйте користувачами Telegram бота
+        Керуйте користувачами Telegram бота.
+      </p>
+      <p className="page-subtitle settings-subtitle-margin">
+        Посилання на Bot: https://t.me/GurmanInvoiceBot
       </p>
 
       {error && (
