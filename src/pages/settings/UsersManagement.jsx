@@ -118,7 +118,6 @@ export default function UsersManagement({
                     value={selectedUser.name || ''}
                     onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
                     placeholder="Ім'я користувача"
-                    disabled
                   />
                 </div>
 
