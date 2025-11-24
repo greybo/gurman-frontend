@@ -1,9 +1,19 @@
 export const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
-// const prefixPath = 'release';
+// export const prefixPath = 'release';
 
 export const usersDbPath = `${prefixPath}/user_db`;
 export const usersTgDbPath = `${prefixPath}/tg_user_db`;
 export const thresholdMessageDBPath = `${prefixPath}/scan_threshold_message_db`;
+
+
+export function thresholdDataDBPath() {
+  const today = new Date();
+  const currentYear = today.getFullYear();
+  const currentMonth = today.getMonth() + 1;
+  const currentDay = today.getDate();
+  return `${prefixPath}/scan_threshold_db/${currentYear}/${currentMonth}/${currentDay}`;
+}
+
 // export const thresholdDataDBPath = `${formatNow}`;
 
 //   const formatNow = () => {
@@ -14,11 +24,3 @@ export const thresholdMessageDBPath = `${prefixPath}/scan_threshold_message_db`;
 //     const year = d.getFullYear();
 //     return `${year}/${month}/${day}`;
 //   };
-
-export function thresholdDataDBPath() {
-  const today = new Date();
-  const currentYear = today.getFullYear();
-  const currentMonth = today.getMonth() + 1;
-  const currentDay = today.getDate();
-  return `${prefixPath}/scan_threshold_db/${currentYear}/${currentMonth}/${currentDay}`;
-}

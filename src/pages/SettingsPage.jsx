@@ -2,9 +2,11 @@
 import React, { useState } from 'react';
 import ThresholdSettings from './settings/ThresholdSettings';
 import UsersManagement from './settings/UsersManagement';
+import TelegramUsersSettings from './settings/TelegramUsersSettings';
 import GeneralSettings from './settings/GeneralSettings';
 import useThresholdSettings from '../hooks/useThresholdSettings';
 import useUsersManagement from '../hooks/useUsersManagement';
+import useTelegramUsers from '../hooks/useTelegramUsers';
 
 export default function SettingsPage() {
   const [activeItem, setActiveItem] = useState('scan-threshold');
@@ -12,6 +14,7 @@ export default function SettingsPage() {
   // Import all logic from custom hooks
   const thresholdSettings = useThresholdSettings();
   const usersManagement = useUsersManagement();
+  const telegramUsers = useTelegramUsers();
 
   return (
     <div className="page-container">
@@ -36,6 +39,12 @@ export default function SettingsPage() {
               Користувачі
             </button>
             <button
+              className={`settings-menu-item ${activeItem === 'telegram-users' ? 'active' : ''}`}
+              onClick={() => setActiveItem('telegram-users')}
+            >
+              Telegram Користувачі
+            </button>
+            <button
               className={`settings-menu-item ${activeItem === 'general' ? 'active' : ''}`}
               onClick={() => setActiveItem('general')}
             >
@@ -51,6 +60,10 @@ export default function SettingsPage() {
 
           {activeItem === 'users' && (
             <UsersManagement {...usersManagement} />
+          )}
+
+          {activeItem === 'telegram-users' && (
+            <TelegramUsersSettings {...telegramUsers} />
           )}
 
           {activeItem === 'general' && (
