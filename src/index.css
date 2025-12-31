@@ -2587,3 +2587,82 @@ td[style*="text-align: center"] {
     transform: rotate(360deg);
   }
 }
+
+/* Додайте ці стилі в кінець вашого src/index.css файлу */
+
+/* Excel Manager Tabs */
+.excel-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e5e7eb;
+  padding-bottom: 0;
+}
+
+.excel-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: transparent;
+  color: #6b7280;
+  border: none;
+  border-bottom: 3px solid transparent;
+  border-radius: 8px 8px 0 0;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.excel-tab:hover {
+  background-color: #f9fafb;
+  color: #1d1d1f;
+}
+
+.excel-tab.active {
+  background-color: #5b5fc7;
+  color: white;
+  border-bottom-color: #5b5fc7;
+}
+
+.excel-tab svg {
+  vertical-align: middle;
+}
+
+/* Responsive tabs */
+@media (max-width: 768px) {
+  .excel-tabs {
+    gap: 4px;
+  }
+
+  .excel-tab {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+
+  .excel-tab svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .excel-tabs {
+    flex-direction: column;
+    border-bottom: none;
+  }
+
+  .excel-tab {
+    width: 100%;
+    border-radius: 8px;
+    border-bottom: none;
+    justify-content: center;
+  }
+
+  .excel-tab.active {
+    border-left: 4px solid #5b5fc7;
+    border-bottom: none;
+  }
+}

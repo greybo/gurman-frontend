@@ -1,13 +1,11 @@
 // src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
-import { FileSpreadsheet, Home, TestTube2, FolderOpen, LogOut, User, Settings as SettingsIcon } from 'lucide-react';
+import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { FileSpreadsheet, TestTube2, LogOut, User, Settings as SettingsIcon } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
-import ExcelParser from './pages/ExcelParser';
+import ExcelManager from './pages/ExcelManager';
 import TestPage from './pages/TestPage';
-import HomePage from './pages/HomePage';
-import FilesListPage from './pages/FilesListPage';
 import LoginPage from './pages/LoginPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
@@ -44,18 +42,11 @@ function Navigation() {
                 Аналітика
               </Link>
               <Link
-                to="/parser"
-                className={`nav-link ${isActive('/parser') ? 'active' : ''}`}
+                to="/excel"
+                className={`nav-link ${isActive('/excel') ? 'active' : ''}`}
               >
                 <FileSpreadsheet size={18} />
-                Excel Parser
-              </Link>
-              <Link
-                to="/files"
-                className={`nav-link ${isActive('/files') ? 'active' : ''}`}
-              >
-                <FolderOpen size={18} />
-                Мої файли
+                Excel Manager
               </Link>
               <Link
                 to="/settings"
@@ -76,7 +67,7 @@ function Navigation() {
           </div>
         </>
       )}
-    </nav >
+    </nav>
   );
 }
 
@@ -95,18 +86,10 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/parser"
+          path="/excel"
           element={
             <PrivateRoute>
-              <ExcelParser />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/files"
-          element={
-            <PrivateRoute>
-              <FilesListPage />
+              <ExcelManager />
             </PrivateRoute>
           }
         />
