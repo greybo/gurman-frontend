@@ -7,6 +7,8 @@ import { BarChart2, Calendar as CalendarIcon, User, Activity, ShoppingCart } fro
 import { prefixPath } from '../PathDb';
 
 export default function AnalyticsPage() {
+  console.log('[AnalyticsPage] Component rendering');
+
   const today = new Date();
   const currentYear = today.getFullYear();
   const currentMonth = today.getMonth() + 1;
@@ -32,69 +34,154 @@ export default function AnalyticsPage() {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState('');
 
+  // Component lifecycle logging and global error handler
+  useEffect(() => {
+    console.log('[AnalyticsPage] Component mounted');
+
+    // Global error handler to catch runtime errors
+    const handleError = (event) => {
+      console.error('[AnalyticsPage] Global error caught:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        error: event.error
+      });
+    };
+
+    // Handler for unhandled promise rejections
+    const handleUnhandledRejection = (event) => {
+      console.error('[AnalyticsPage] Unhandled promise rejection:', {
+        reason: event.reason,
+        promise: event.promise
+      });
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      console.log('[AnalyticsPage] Component will unmount');
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
 
   useEffect(() => {
+    console.log('[AnalyticsPage] Fetching year data:', selectedYear);
     const yearRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}`);
     onValue(yearRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const months = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
-        setAvailableMonths(months);
-        if (months.length > 0 && !months.includes(selectedMonth)) {
-          setSelectedMonth(months[0]);
+      try {
+        if (snapshot.exists()) {
+          const months = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
+          console.log('[AnalyticsPage] Available months:', months);
+          setAvailableMonths(months);
+          if (months.length > 0 && !months.includes(selectedMonth)) {
+            setSelectedMonth(months[0]);
+          }
+        } else {
+          console.warn('[AnalyticsPage] No data for year:', selectedYear);
         }
+      } catch (error) {
+        console.error('[AnalyticsPage] Error processing year data:', error);
       }
-    }, { onlyOnce: true });
+    }, (error) => {
+      console.error('[AnalyticsPage] Firebase error fetching year data:', error);
+    });
   }, [selectedYear]);
 
   useEffect(() => {
-    if (!selectedMonth) return;
+    if (!selectedMonth) {
+      console.log('[AnalyticsPage] Month not selected, skipping fetch');
+      return;
+    }
+    console.log('[AnalyticsPage] Fetching month data:', selectedYear, selectedMonth);
     const monthRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}/${selectedMonth}`);
     onValue(monthRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const days = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
-        setAvailableDays(days);
-        if (days.length > 0 && !days.includes(selectedDay)) {
-          setSelectedDay(days[0]);
+      try {
+        if (snapshot.exists()) {
+          const days = Object.keys(snapshot.val()).map(Number).sort((a, b) => b - a);
+          console.log('[AnalyticsPage] Available days:', days);
+          setAvailableDays(days);
+          if (days.length > 0 && !days.includes(selectedDay)) {
+            setSelectedDay(days[0]);
+          }
+        } else {
+          console.warn('[AnalyticsPage] No data for month:', selectedYear, selectedMonth);
         }
+      } catch (error) {
+        console.error('[AnalyticsPage] Error processing month data:', error);
       }
-    }, { onlyOnce: true });
+    }, (error) => {
+      console.error('[AnalyticsPage] Firebase error fetching month data:', error);
+    });
   }, [selectedYear, selectedMonth]);
 
   useEffect(() => {
-    if (!selectedDay || availableDays.length === 0) return;
+    if (!selectedDay || availableDays.length === 0) {
+      console.log('[AnalyticsPage] Day not selected or no days available, skipping fetch');
+      return;
+    }
+    console.log('[AnalyticsPage] Fetching logging data for:', selectedYear, selectedMonth, selectedDay);
     setLoading(true);
     const dayRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}/${selectedMonth}/${selectedDay}`);
     onValue(dayRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        setLoggingData(data);
-        setUsers([...new Set(Object.values(data).map(item => item.userId))].filter(Boolean));
-        setActions([...new Set(Object.values(data).map(item => item.screen))].filter(Boolean));
-      } else {
-        setLoggingData({});
-        setUsers([]);
-        setActions([]);
+      try {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          console.log('[AnalyticsPage] Logging data received, entries:', Object.keys(data).length);
+          setLoggingData(data);
+          setUsers([...new Set(Object.values(data).map(item => item.userId))].filter(Boolean));
+          setActions([...new Set(Object.values(data).map(item => item.screen))].filter(Boolean));
+        } else {
+          console.warn('[AnalyticsPage] No logging data for day:', selectedYear, selectedMonth, selectedDay);
+          setLoggingData({});
+          setUsers([]);
+          setActions([]);
+        }
+      } catch (error) {
+        console.error('[AnalyticsPage] Error processing logging data:', error);
+      } finally {
+        setLoading(false);
       }
+    }, (error) => {
+      console.error('[AnalyticsPage] Firebase error fetching logging data:', error);
       setLoading(false);
-    }, { onlyOnce: true });
+    });
   }, [selectedYear, selectedMonth, selectedDay, availableDays]);
 
   useEffect(() => {
-    if (!selectedDay || availableDays.length === 0) return;
+    if (!selectedDay || availableDays.length === 0) {
+      console.log('[AnalyticsPage] Day not selected or no days available, skipping threshold fetch');
+      return;
+    }
+    console.log('[AnalyticsPage] Fetching scan threshold data for:', selectedYear, selectedMonth, selectedDay);
     setLoading(true);
     const dbRef = ref(database, `${prefixPath}/scan_threshold_db/${selectedYear}/${selectedMonth}/${selectedDay}`);
     onValue(dbRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        setScanThresholdData(data);
-      } else {
-        setScanThresholdData({});
+      try {
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          console.log('[AnalyticsPage] Scan threshold data:', data);
+          setScanThresholdData(data);
+        } else {
+          console.warn('[AnalyticsPage] No scan threshold data for day:', selectedYear, selectedMonth, selectedDay);
+          setScanThresholdData({});
+        }
+      } catch (error) {
+        console.error('[AnalyticsPage] Error processing scan threshold data:', error);
+      } finally {
+        setLoading(false);
       }
+    }, (error) => {
+      console.error('[AnalyticsPage] Firebase error fetching scan threshold data:', error);
       setLoading(false);
-    }, { onlyOnce: true });
+    });
   }, [selectedYear, selectedMonth, selectedDay, availableDays]);
 
   useEffect(() => {
+    console.log('[AnalyticsPage] Processing chart data. Filters:', { selectedUser, selectedAction, timeInterval });
     let filteredEntries = Object.entries(loggingData);
 
     if (selectedUser !== 'all') {
@@ -104,7 +191,10 @@ export default function AnalyticsPage() {
       filteredEntries = filteredEntries.filter(([, data]) => data.screen === selectedAction);
     }
 
+    console.log('[AnalyticsPage] Filtered entries count:', filteredEntries.length);
+
     if (filteredEntries.length === 0) {
+      console.log('[AnalyticsPage] No data after filtering, clearing chart');
       setChartData([]);
       return;
     }
@@ -164,7 +254,9 @@ export default function AnalyticsPage() {
       }
     });
 
-    setChartData(Object.values(intervalData));
+    const finalChartData = Object.values(intervalData);
+    console.log('[AnalyticsPage] Chart data updated, data points:', finalChartData.length);
+    setChartData(finalChartData);
   }, [loggingData, selectedUser, selectedAction, timeInterval]);
 
   const monthNames = [
