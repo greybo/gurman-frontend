@@ -15,7 +15,7 @@ export const DatePickerCard = ({ selectedDate, datesWithData, onDateChange }) =>
   };
 
   return (
-    <div className="analytics-date-card">
+    <div className="analytics-date-card compact">
       <div className="date-card-header">
         <CalendarIcon size={20} />
         <h3>Вибір дати</h3>

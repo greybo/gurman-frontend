@@ -81,20 +81,22 @@ export default function AnalyticsPage() {
         ordersError={ordersError}
       />
 
-      <DatePickerCard
-        selectedDate={selectedDate}
-        datesWithData={datesWithData}
-        onDateChange={handleDateChange}
-      />
+      <div className="analytics-controls-row">
+        <DatePickerCard
+          selectedDate={selectedDate}
+          datesWithData={datesWithData}
+          onDateChange={handleDateChange}
+        />
 
-      <FiltersCard
-        users={users}
-        actions={actions}
-        selectedUser={selectedUser}
-        selectedAction={selectedAction}
-        onUserChange={setSelectedUser}
-        onActionChange={setSelectedAction}
-      />
+        <FiltersCard
+          users={users}
+          actions={actions}
+          selectedUser={selectedUser}
+          selectedAction={selectedAction}
+          onUserChange={setSelectedUser}
+          onActionChange={setSelectedAction}
+        />
+      </div>
 
       <StatsCard chartData={chartData} />
 
