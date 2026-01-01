@@ -23,7 +23,7 @@ export default function useFilesList(activeTab) {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`${API_URL}/api/files`);
+      const response = await fetch(`${API_URL}/files`);
       const result = await response.json();
       
       if (response.ok) {
@@ -44,7 +44,7 @@ export default function useFilesList(activeTab) {
     setLoading(true);
     setError('');
     try {
-      const response = await fetch(`${API_URL}/api/files/${fileId}`);
+      const response = await fetch(`${API_URL}/files/${fileId}`);
       const result = await response.json();
       
       if (response.ok) {
@@ -66,7 +66,7 @@ export default function useFilesList(activeTab) {
     if (!confirm('Ви впевнені, що хочете видалити цей файл?')) return;
 
     try {
-      const response = await fetch(`${API_URL}/api/files/${fileId}`, {
+      const response = await fetch(`${API_URL}/files/${fileId}`, {
         method: 'DELETE'
       });
       

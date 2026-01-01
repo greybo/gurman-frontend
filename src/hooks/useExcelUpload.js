@@ -73,7 +73,7 @@ export default function useExcelUpload() {
     formData.append('documentId', documentId);
 
     try {
-      const response = await fetch(`${API_URL}/api/upload`, {
+      const response = await fetch(`${API_URL}/upload`, {
         method: 'POST',
         body: formData,
       });
