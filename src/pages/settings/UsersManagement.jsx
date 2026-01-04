@@ -2,7 +2,7 @@
 import React from 'react';
 import {
   Users, Hash, CheckCircle, AlertTriangle, Save, RefreshCw,
-  Mail, FileText, Package, Boxes, SearchCode, ChevronDown
+  Mail, FileText, Package, Boxes, SearchCode, ChevronDown, Lock, Palette
 } from 'lucide-react';
 
 export default function UsersManagement({
@@ -23,9 +23,17 @@ export default function UsersManagement({
   handleInputChange,
   handleCheckboxChange,
   currentUsersTg,
-  dropdownRef
+  dropdownRef,
+  argbToHex
 }) {
   const selectedUser = users[selectedUserId] || {};
+
+  // Get color value (convert ARGB to hex if needed)
+  const getColorValue = (color) => {
+    if (!color) return '#3b82f6';
+    if (typeof color === 'string') return color;
+    return argbToHex(color);
+  };
 
   return (
     <div className="users-management-container">
@@ -119,6 +127,46 @@ export default function UsersManagement({
                     onChange={(e) => handleInputChange(selectedUserId, 'name', e.target.value)}
                     placeholder="Ім'я користувача"
                   />
+                </div>
+
+                <div className="users-form-group">
+                  <label className="users-form-label">
+                    <Lock size={14} />
+                    PIN
+                  </label>
+                  <input
+                    type="text"
+                    className="users-form-input"
+                    value={selectedUser.pin || ''}
+                    onChange={(e) => handleInputChange(selectedUserId, 'pin', e.target.value)}
+                    placeholder="PIN для ідентифікації"
+                    maxLength="6"
+                  />
+                </div>
+
+                <div className="users-form-group">
+                  <label className="users-form-label">
+                    <Palette size={14} />
+                    Колір
+                  </label>
+                  <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <input
+                      type="color"
+                      className="users-form-input"
+                      value={getColorValue(selectedUser.color)}
+                      onChange={(e) => handleInputChange(selectedUserId, 'color', e.target.value)}
+                      style={{ width: '60px', height: '40px', cursor: 'pointer' }}
+                    />
+                    <input
+                      type="text"
+                      className="users-form-input"
+                      value={getColorValue(selectedUser.color)}
+                      onChange={(e) => handleInputChange(selectedUserId, 'color', e.target.value)}
+                      placeholder="#3b82f6"
+                      maxLength="7"
+                      style={{ flex: 1 }}
+                    />
+                  </div>
                 </div>
 
                 {/* Start - Chat ID dropdown list */}
@@ -221,7 +269,17 @@ export default function UsersManagement({
                   <label className="users-permission-label">
                     <input
                       type="checkbox"
-                      checked={!!selectedUser.invoice}
+                      checked={!!selectedUser.userRestrict?.admin}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'admin', e.target.checked)}
+                    />
+                    <CheckCircle size={16} />
+                    Адмін
+                  </label>
+
+                  <label className="users-permission-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.userRestrict?.invoice}
                       onChange={(e) => handleCheckboxChange(selectedUserId, 'invoice', e.target.checked)}
                     />
                     <FileText size={16} />
@@ -231,7 +289,7 @@ export default function UsersManagement({
                   <label className="users-permission-label">
                     <input
                       type="checkbox"
-                      checked={!!selectedUser.invoiceAll}
+                      checked={!!selectedUser.userRestrict?.invoiceAll}
                       onChange={(e) => handleCheckboxChange(selectedUserId, 'invoiceAll', e.target.checked)}
                     />
                     <FileText size={16} />
@@ -241,7 +299,7 @@ export default function UsersManagement({
                   <label className="users-permission-label">
                     <input
                       type="checkbox"
-                      checked={!!selectedUser.orderAll}
+                      checked={!!selectedUser.userRestrict?.orderAll}
                       onChange={(e) => handleCheckboxChange(selectedUserId, 'orderAll', e.target.checked)}
                     />
                     <Package size={16} />
@@ -251,7 +309,7 @@ export default function UsersManagement({
                   <label className="users-permission-label">
                     <input
                       type="checkbox"
-                      checked={!!selectedUser.volumeAndParams}
+                      checked={!!selectedUser.userRestrict?.volumeAndParams}
                       onChange={(e) => handleCheckboxChange(selectedUserId, 'volumeAndParams', e.target.checked)}
                     />
                     <Boxes size={16} />
@@ -261,11 +319,31 @@ export default function UsersManagement({
                   <label className="users-permission-label">
                     <input
                       type="checkbox"
-                      checked={!!selectedUser.searchCode}
+                      checked={!!selectedUser.userRestrict?.searchCode}
                       onChange={(e) => handleCheckboxChange(selectedUserId, 'searchCode', e.target.checked)}
                     />
                     <SearchCode size={16} />
                     Пошук коду
+                  </label>
+
+                  <label className="users-permission-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.userRestrict?.shop}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'shop', e.target.checked)}
+                    />
+                    <Package size={16} />
+                    Магазин
+                  </label>
+
+                  <label className="users-permission-label">
+                    <input
+                      type="checkbox"
+                      checked={!!selectedUser.userRestrict?.tasks}
+                      onChange={(e) => handleCheckboxChange(selectedUserId, 'tasks', e.target.checked)}
+                    />
+                    <CheckCircle size={16} />
+                    Задачі
                   </label>
                 </div>
               </div>

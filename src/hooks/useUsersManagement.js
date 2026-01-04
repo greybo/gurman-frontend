@@ -4,6 +4,35 @@ import { database } from '../firebase';
 import { ref, onValue, update } from 'firebase/database';
 import { usersTgDbPath, usersDbPath } from '../PathDb';
 
+// Helper functions to convert between hex color and ARGB integer
+const hexToARGB = (hex) => {
+  // Remove # if present
+  hex = hex.replace('#', '');
+
+  // Parse RGB values
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const a = 255; // Full opacity
+
+  // Combine into ARGB integer (A << 24 | R << 16 | G << 8 | B)
+  return (a << 24) | (r << 16) | (g << 8) | b;
+};
+
+const argbToHex = (argb) => {
+  if (!argb) return '#3b82f6'; // Default blue color
+
+  // Extract RGBA components
+  const a = (argb >> 24) & 0xFF;
+  const r = (argb >> 16) & 0xFF;
+  const g = (argb >> 8) & 0xFF;
+  const b = argb & 0xFF;
+
+  // Convert to hex
+  const toHex = (n) => n.toString(16).padStart(2, '0');
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+};
+
 export default function useUsersManagement() {
   // State
   const [users, setUsers] = useState({});
@@ -28,14 +57,17 @@ export default function useUsersManagement() {
     onValue(usersRef, (snapshot) => {
       if (snapshot.exists()) {
         const data = snapshot.val();
+        console.log('Users data loaded:', data);
         setUsers(data);
+        setUsersError(''); // Clear any previous errors
       } else {
+        console.warn('No users found at path:', usersDbPath);
         setUsers({});
         setUsersError('Користувачів не знайдено');
       }
       setLoading(false);
     }, (err) => {
-      console.error('Помилка завантаження:', err);
+      console.error('Помилка завантаження користувачів:', err);
       setUsersError('Помилка завантаження даних');
       setLoading(false);
     }, { onlyOnce: true });
@@ -69,12 +101,13 @@ export default function useUsersManagement() {
         }
 
       } else {
+        console.warn('No Telegram users found at path:', usersTgDbPath);
         setUsersTg({});
-        setUsersError('Користувачів не знайдено');
+        // Don't set usersError here - it's for main users, not Telegram users
       }
     }, (err) => {
-      console.error('Помилка завантаження:', err);
-      setUsersError('Помилка завантаження даних');
+      console.error('Помилка завантаження Telegram користувачів:', err);
+      // Don't set usersError here - it's for main users, not Telegram users
     }, { onlyOnce: true });
   }, [selectedUserId]);
 
@@ -108,13 +141,16 @@ export default function useUsersManagement() {
     }));
   };
 
-  // Handle checkbox change for permissions
-  const handleCheckboxChange = (chatId, field, checked) => {
+  // Handle checkbox change for permissions (now in userRestrict)
+  const handleCheckboxChange = (userId, field, checked) => {
     setUsers(prevUsers => ({
       ...prevUsers,
-      [chatId]: {
-        ...prevUsers[chatId],
-        [field]: checked
+      [userId]: {
+        ...prevUsers[userId],
+        userRestrict: {
+          ...prevUsers[userId]?.userRestrict,
+          [field]: checked
+        }
       }
     }));
   };
@@ -136,19 +172,30 @@ export default function useUsersManagement() {
     const userRef = ref(database, `${usersDbPath}/${selectedUserId}`);
     console.info('Check id:', searchTerm);
     handleInputChange(selectedUserId, 'chatId', searchTerm || 0);
+
+    // Convert hex color to ARGB integer for saving
+    const colorValue = userToSave.color
+      ? (typeof userToSave.color === 'string' ? hexToARGB(userToSave.color) : userToSave.color)
+      : hexToARGB('#3b82f6');
+
     try {
       await update(userRef, {
         chatId: searchTerm || 0,
-        userId: userToSave.userId || '',
+        uid: userToSave.uid || selectedUserId,
         email: userToSave.email || '',
         name: userToSave.name || '',
-        overScan: userToSave.overScan || false,
-        sendErrorMessage: userToSave.sendErrorMessage || false,
-        invoice: userToSave.invoice || false,
-        invoiceAll: userToSave.invoiceAll || false,
-        orderAll: userToSave.orderAll || false,
-        volumeAndParams: userToSave.volumeAndParams || false,
-        searchCode: userToSave.searchCode || false,
+        pin: userToSave.pin || '',
+        color: colorValue,
+        userRestrict: {
+          admin: userToSave.userRestrict?.admin || false,
+          invoice: userToSave.userRestrict?.invoice || false,
+          invoiceAll: userToSave.userRestrict?.invoiceAll || false,
+          orderAll: userToSave.userRestrict?.orderAll || false,
+          volumeAndParams: userToSave.userRestrict?.volumeAndParams || false,
+          searchCode: userToSave.userRestrict?.searchCode || false,
+          shop: userToSave.userRestrict?.shop || false,
+          tasks: userToSave.userRestrict?.tasks || false,
+        }
       });
     } catch (err) {
       console.error('Помилка збереження:', err);
@@ -186,6 +233,8 @@ export default function useUsersManagement() {
     handleInputChange,
     handleCheckboxChange,
     handleSelectChatId,
-    handleSaveUser
+    handleSaveUser,
+    // Helpers
+    argbToHex
   };
 }
