@@ -266,7 +266,7 @@ export default function UsersManagement({
                 <h4 className="users-form-section-title">Дозволи</h4>
                 <div className="users-permissions-grid">
 
-                  <label className="users-permission-label">
+                  {/* <label className="users-permission-label">
                     <input
                       type="checkbox"
                       checked={!!selectedUser.userRestrict?.admin}
@@ -274,7 +274,7 @@ export default function UsersManagement({
                     />
                     <CheckCircle size={16} />
                     Адмін
-                  </label>
+                  </label> */}
 
                   <label className="users-permission-label">
                     <input
@@ -326,7 +326,7 @@ export default function UsersManagement({
                     Пошук коду
                   </label>
 
-                  <label className="users-permission-label">
+                  {/* <label className="users-permission-label">
                     <input
                       type="checkbox"
                       checked={!!selectedUser.userRestrict?.shop}
@@ -334,9 +334,9 @@ export default function UsersManagement({
                     />
                     <Package size={16} />
                     Магазин
-                  </label>
+                  </label> */}
 
-                  <label className="users-permission-label">
+                  {/* <label className="users-permission-label">
                     <input
                       type="checkbox"
                       checked={!!selectedUser.userRestrict?.tasks}
@@ -344,7 +344,7 @@ export default function UsersManagement({
                     />
                     <CheckCircle size={16} />
                     Задачі
-                  </label>
+                  </label> */}
                 </div>
               </div>
             </div>
