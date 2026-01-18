@@ -106,7 +106,16 @@ export default function useSalesData() {
     }
   };
 
-  // Get unique months for filter dropdown
+  // Clear selected month if it doesn't belong to the selected year
+  useEffect(() => {
+    if (selectedMonth && selectedYear) {
+      if (!selectedMonth.startsWith(selectedYear)) {
+        setSelectedMonth('');
+      }
+    }
+  }, [selectedYear, selectedMonth]);
+
+  // Get unique months for filter dropdown (filtered by selected year)
   const uniqueMonths = useMemo(() => {
     const monthsSet = new Set();
 
@@ -114,12 +123,19 @@ export default function useSalesData() {
       const date = order.updateDate || order.createNewOrder;
       if (date) {
         const month = date.substring(0, 7); // "YYYY-MM"
-        monthsSet.add(month);
+        // If a year is selected, only include months from that year
+        if (selectedYear) {
+          if (month.startsWith(selectedYear)) {
+            monthsSet.add(month);
+          }
+        } else {
+          monthsSet.add(month);
+        }
       }
     });
 
     return Array.from(monthsSet).sort().reverse();
-  }, [orders]);
+  }, [orders, selectedYear]);
 
   // Get unique years for filter dropdown
   const uniqueYears = useMemo(() => {
