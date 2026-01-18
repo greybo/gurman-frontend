@@ -194,27 +194,36 @@ export default function SalesPage() {
                 <tr>
                   <th>№ Замовлення</th>
                   <th>Клієнт</th>
-                  <th>Телефон</th>
-                  <th>К-сть продаж</th>
                   <th>Сума</th>
                   <th>Дата продажу</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredOrders.map((order) => (
-                  <tr key={order.orderId || order.id}>
-                    <td className="sales-td-id">{order.id || '-'}</td>
-                    <td className="sales-td-client">{getClientName(order)}</td>
-                    <td className="sales-td-phone">{getPhone(order)}</td>
-                    <td className="sales-td-count">{order.primaryContact?.leadsSalesCount || 0}</td>
-                    <td className="sales-td-amount">{formatCurrency(order.paymentAmount || 0)}</td>
-                    <td className="sales-td-date">{formatDate(order.updateDate || order.createNewOrder)}</td>
-                  </tr>
-                ))}
+                {filteredOrders.map((order) => {
+                  const salesCount = order.primaryContact?.leadsSalesCount || 0;
+                  return (
+                    <tr key={order.orderId || order.id}>
+                      <td className="sales-td-id">{order.id || '-'}</td>
+                      <td className="sales-td-client">
+                        <div className="sales-client-info">
+                          <div className="sales-client-name-row">
+                            <span className="sales-client-name">{getClientName(order)}</span>
+                            {salesCount > 1 && (
+                              <span className="sales-count-badge">{salesCount}</span>
+                            )}
+                          </div>
+                          <span className="sales-client-phone">{getPhone(order)}</span>
+                        </div>
+                      </td>
+                      <td className="sales-td-amount">{formatCurrency(order.paymentAmount || 0)}</td>
+                      <td className="sales-td-date">{formatDate(order.updateDate || order.createNewOrder)}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan="4" className="sales-tfoot-label">Всього:</td>
+                  <td colSpan="2" className="sales-tfoot-label">Всього:</td>
                   <td className="sales-tfoot-amount">{formatCurrency(totalSum)}</td>
                   <td></td>
                 </tr>
