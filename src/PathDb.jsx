@@ -1,6 +1,7 @@
 export const prefixPath = import.meta.env.VITE_FIREBASE_DB_PREFIX || 'release';
 // export const prefixPath = 'release';
 
+export const orderSallesDbPath = `${prefixPath}/orderSell_DB_V2`;
 export const usersDbPath = `${prefixPath}/user_db_V2`;
 export const usersTgDbPath = `${prefixPath}/tg_user_db`;
 export const thresholdMessageDBPath = `${prefixPath}/scan_threshold_message_db`;
