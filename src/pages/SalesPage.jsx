@@ -1,6 +1,6 @@
 // src/pages/SalesPage.jsx
 import React from 'react';
-import { ShoppingCart, RefreshCw, Users, Calendar, X, DollarSign, ChevronDown } from 'lucide-react';
+import { ShoppingCart, RefreshCw, Users, Calendar, X, DollarSign, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import useSalesData from '../hooks/useSalesData';
 
 export default function SalesPage() {
@@ -27,7 +27,10 @@ export default function SalesPage() {
     filteredClients,
     handleSelectClient,
     handleClientInputChange,
-    clientDropdownRef
+    clientDropdownRef,
+    // Sorting
+    dateSortOrder,
+    toggleDateSort
   } = useSalesData();
 
   // Month names for display
@@ -195,7 +198,10 @@ export default function SalesPage() {
                   <th>№ Замовлення</th>
                   <th>Клієнт</th>
                   <th>Сума</th>
-                  <th>Дата продажу</th>
+                  <th className="sales-th-sortable" onClick={toggleDateSort}>
+                    Дата продажу
+                    {dateSortOrder === 'desc' ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+                  </th>
                 </tr>
               </thead>
               <tbody>

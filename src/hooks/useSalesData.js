@@ -16,6 +16,9 @@ export default function useSalesData() {
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
 
+  // Sorting
+  const [dateSortOrder, setDateSortOrder] = useState('desc'); // 'asc' | 'desc'
+
   const clientDropdownRef = useRef(null);
 
   // Fetch orders from Firebase
@@ -154,7 +157,7 @@ export default function useSalesData() {
 
   // Filter orders based on selected filters
   const filteredOrders = useMemo(() => {
-    return orders.filter(order => {
+    const filtered = orders.filter(order => {
       // Filter by client
       if (selectedClient) {
         const fName = order.fName || order.primaryContact?.fName || '';
@@ -183,7 +186,17 @@ export default function useSalesData() {
 
       return true;
     });
-  }, [orders, selectedClient, selectedMonth, selectedYear]);
+
+    // Sort by date
+    return filtered.sort((a, b) => {
+      const dateA = a.updateDate || a.createNewOrder || '';
+      const dateB = b.updateDate || b.createNewOrder || '';
+      if (dateSortOrder === 'asc') {
+        return dateA.localeCompare(dateB);
+      }
+      return dateB.localeCompare(dateA);
+    });
+  }, [orders, selectedClient, selectedMonth, selectedYear, dateSortOrder]);
 
   // Calculate total sum of filtered orders
   const totalSum = useMemo(() => {
@@ -226,6 +239,11 @@ export default function useSalesData() {
     setSelectedYear(new Date().getFullYear().toString());
   };
 
+  // Toggle date sort order
+  const toggleDateSort = () => {
+    setDateSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+  };
+
   return {
     // Data
     orders,
@@ -262,6 +280,10 @@ export default function useSalesData() {
     // Helpers
     formatDate,
     getPhone,
-    getClientName
+    getClientName,
+
+    // Sorting
+    dateSortOrder,
+    toggleDateSort
   };
 }

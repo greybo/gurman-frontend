@@ -3003,6 +3003,18 @@ td[style*="text-align: center"] {
   white-space: nowrap;
 }
 
+.sales-th-sortable {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.sales-th-sortable:hover {
+  opacity: 0.85;
+}
+
 .sales-table tbody tr {
   border-bottom: 1px solid #f3f4f6;
   transition: background-color 0.15s;
