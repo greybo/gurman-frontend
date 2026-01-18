@@ -1,6 +1,6 @@
 // src/pages/SalesPage.jsx
 import React from 'react';
-import { ShoppingCart, RefreshCw, Users, Calendar, X, DollarSign } from 'lucide-react';
+import { ShoppingCart, RefreshCw, Users, Calendar, X, DollarSign, ChevronDown } from 'lucide-react';
 import useSalesData from '../hooks/useSalesData';
 
 export default function SalesPage() {
@@ -12,16 +12,22 @@ export default function SalesPage() {
     selectedClient,
     selectedMonth,
     selectedYear,
-    setSelectedClient,
     setSelectedMonth,
     setSelectedYear,
     clearFilters,
-    uniqueClients,
     uniqueMonths,
     uniqueYears,
     formatDate,
     getPhone,
-    getClientName
+    getClientName,
+    // Client search
+    clientSearchTerm,
+    showClientDropdown,
+    setShowClientDropdown,
+    filteredClients,
+    handleSelectClient,
+    handleClientInputChange,
+    clientDropdownRef
   } = useSalesData();
 
   // Month names for display
@@ -116,16 +122,46 @@ export default function SalesPage() {
               <Users size={16} />
               Клієнт
             </label>
-            <select
-              className="sales-filter-select"
-              value={selectedClient}
-              onChange={(e) => setSelectedClient(e.target.value)}
+            <div
+              className="sales-client-search-wrapper"
+              ref={clientDropdownRef}
             >
-              <option value="">Всі клієнти</option>
-              {uniqueClients.map(client => (
-                <option key={client} value={client}>{client}</option>
-              ))}
-            </select>
+              <input
+                type="text"
+                className="sales-filter-input"
+                value={clientSearchTerm}
+                onChange={(e) => handleClientInputChange(e.target.value)}
+                onFocus={() => setShowClientDropdown(true)}
+                placeholder="Пошук клієнта..."
+              />
+              <button
+                type="button"
+                className="sales-dropdown-toggle"
+                onClick={() => setShowClientDropdown(!showClientDropdown)}
+              >
+                <ChevronDown size={18} />
+              </button>
+
+              {showClientDropdown && (
+                <div className="sales-client-dropdown">
+                  {filteredClients.length > 0 ? (
+                    filteredClients.map(client => (
+                      <div
+                        key={client}
+                        className={`sales-client-dropdown-item ${selectedClient === client ? 'active' : ''}`}
+                        onClick={() => handleSelectClient(client)}
+                      >
+                        {client}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="sales-client-dropdown-empty">
+                      Клієнтів не знайдено
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Total Sum */}

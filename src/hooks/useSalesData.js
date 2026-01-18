@@ -1,5 +1,5 @@
 // src/hooks/useSalesData.js
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { database } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { orderSallesDbPath } from '../PathDb';
@@ -11,8 +11,12 @@ export default function useSalesData() {
 
   // Filters
   const [selectedClient, setSelectedClient] = useState('');
+  const [clientSearchTerm, setClientSearchTerm] = useState('');
+  const [showClientDropdown, setShowClientDropdown] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+
+  const clientDropdownRef = useRef(null);
 
   // Fetch orders from Firebase
   useEffect(() => {
@@ -47,6 +51,18 @@ export default function useSalesData() {
     return () => unsubscribe();
   }, []);
 
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (clientDropdownRef.current && !clientDropdownRef.current.contains(event.target)) {
+        setShowClientDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   // Get unique clients for filter dropdown
   const uniqueClients = useMemo(() => {
     const clientsMap = new Map();
@@ -63,6 +79,32 @@ export default function useSalesData() {
 
     return Array.from(clientsMap.values()).sort();
   }, [orders]);
+
+  // Filter clients by search term
+  const filteredClients = useMemo(() => {
+    if (!clientSearchTerm) return uniqueClients;
+    const searchLower = clientSearchTerm.toLowerCase();
+    return uniqueClients.filter(client =>
+      client.toLowerCase().includes(searchLower)
+    );
+  }, [uniqueClients, clientSearchTerm]);
+
+  // Handle client selection from dropdown
+  const handleSelectClient = (client) => {
+    setSelectedClient(client);
+    setClientSearchTerm(client);
+    setShowClientDropdown(false);
+  };
+
+  // Handle client input change
+  const handleClientInputChange = (value) => {
+    setClientSearchTerm(value);
+    setShowClientDropdown(true);
+    // If input is cleared, clear the filter
+    if (!value) {
+      setSelectedClient('');
+    }
+  };
 
   // Get unique months for filter dropdown
   const uniqueMonths = useMemo(() => {
@@ -163,6 +205,7 @@ export default function useSalesData() {
   // Clear all filters
   const clearFilters = () => {
     setSelectedClient('');
+    setClientSearchTerm('');
     setSelectedMonth('');
     setSelectedYear(new Date().getFullYear().toString());
   };
@@ -179,6 +222,15 @@ export default function useSalesData() {
     selectedClient,
     selectedMonth,
     selectedYear,
+
+    // Client search
+    clientSearchTerm,
+    showClientDropdown,
+    setShowClientDropdown,
+    filteredClients,
+    handleSelectClient,
+    handleClientInputChange,
+    clientDropdownRef,
 
     // Filter setters
     setSelectedClient,
