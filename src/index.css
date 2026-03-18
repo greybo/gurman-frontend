@@ -3545,7 +3545,7 @@ td[style*="text-align: center"] {
   color: #6b7280;
 }
 
-.orders-td-date--stale {
+.orders-td-date.orders-td-date--stale {
   color: #ff0000;
   font-weight: 600;
 }
