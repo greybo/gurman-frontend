@@ -48,7 +48,7 @@ export default function OrdersPage() {
           <div>
             <h1 className="analytics-title">Замовлення</h1>
             <p className="analytics-subtitle">
-              Поточні замовлення з orders_DB_V3
+              Поточні замовлення
             </p>
           </div>
         </div>
@@ -131,6 +131,8 @@ export default function OrdersPage() {
             const groupBg = info.bg
               ? `${info.bg}B3` // hex + B3 = 70% opacity
               : undefined;
+            const isLightBg = info.color === 'yellow';
+            const headerTextColor = isLightBg ? '#1d1d1f' : 'white';
 
             return (
               <div
@@ -140,6 +142,7 @@ export default function OrdersPage() {
               >
                 <button
                   className="orders-group-header"
+                  style={{ color: headerTextColor }}
                   onClick={() => toggleGroup(statusId)}
                 >
                   <div className="orders-group-left">
