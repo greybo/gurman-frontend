@@ -3426,6 +3426,7 @@ td[style*="text-align: center"] {
   border: none;
   cursor: pointer;
   font-size: 14px;
+  color: white;
   transition: background 0.15s;
 }
 
@@ -3440,13 +3441,15 @@ td[style*="text-align: center"] {
 }
 
 .orders-group-count {
-  color: #6b7280;
+  color: white;
   font-size: 13px;
+  font-weight: 500;
 }
 
 .orders-group-updated {
-  color: #9ca3af;
+  color: white;
   font-size: 12px;
+  font-weight: 500;
 }
 
 .orders-group-body {
@@ -3581,11 +3584,6 @@ td[style*="text-align: center"] {
   color: #ef4444;
 }
 
-/* Group header text contrast on colored bg */
-.orders-group-count,
-.orders-group-updated {
-  text-shadow: 0 0 4px rgba(255,255,255,0.8);
-}
 
 /* Responsive */
 @media (max-width: 768px) {
