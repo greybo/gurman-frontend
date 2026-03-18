@@ -8,6 +8,7 @@ import {
   Clock,
   Truck,
   AlertCircle,
+  Trash2,
 } from 'lucide-react';
 import useOrdersData, { getStatusInfo } from '../hooks/useOrdersData';
 
@@ -25,7 +26,18 @@ export default function OrdersPage() {
     getClientName,
     getShipping,
     isDateOlderThan24h,
+    deleteOrder,
   } = useOrdersData();
+
+  const handleDelete = (order) => {
+    const name = `${order.fName || ''} ${order.lName || ''}`.trim() || '—';
+    const confirmed = window.confirm(
+      `Видалити замовлення #${order.id}?\nКлієнт: ${name}\n\nЦю дію не можна скасувати.`
+    );
+    if (confirmed) {
+      deleteOrder(order.orderId);
+    }
+  };
 
   return (
     <div className="page-container">
@@ -116,9 +128,16 @@ export default function OrdersPage() {
             const info = getStatusInfo(Number(statusId));
             const list = groupedOrders[statusId];
             const isExpanded = expandedGroups[statusId];
+            const groupBg = info.bg
+              ? `${info.bg}B3` // hex + B3 = 70% opacity
+              : undefined;
 
             return (
-              <div className="orders-group" key={statusId}>
+              <div
+                className="orders-group"
+                key={statusId}
+                style={groupBg ? { backgroundColor: groupBg } : undefined}
+              >
                 <button
                   className="orders-group-header"
                   onClick={() => toggleGroup(statusId)}
@@ -154,6 +173,7 @@ export default function OrdersPage() {
                           <th>Доставка</th>
                           <th>Оновлено</th>
                           <th>Коментар</th>
+                          <th></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -194,6 +214,15 @@ export default function OrdersPage() {
                             </td>
                             <td className="orders-td-comment">
                               {order.comment || '—'}
+                            </td>
+                            <td className="orders-td-actions">
+                              <button
+                                className="orders-delete-btn"
+                                onClick={() => handleDelete(order)}
+                                title="Видалити замовлення"
+                              >
+                                <Trash2 size={16} />
+                              </button>
                             </td>
                           </tr>
                         ))}

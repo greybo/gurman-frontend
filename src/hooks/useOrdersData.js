@@ -1,34 +1,35 @@
 // src/hooks/useOrdersData.js
 import { useState, useEffect, useMemo } from 'react';
 import { database } from '../firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, remove } from 'firebase/database';
 import { ordersV3DbPath } from '../PathDb';
 
 // Status mapping from SalesDrive
+// bg = hex color used for group background at 70% opacity
 const STATUS_MAP = {
-  1:  { label: 'Новий',                        color: 'info' },
-  2:  { label: 'Підтверджен',                  color: 'success' },
-  3:  { label: 'На отправку',                  color: 'orange' },
-  4:  { label: 'Отправлен',                    color: 'success' },
-  5:  { label: 'Продажа',                      color: 'success' },
-  6:  { label: 'Отказ',                        color: 'error' },
-  7:  { label: 'Возврат',                      color: 'error' },
-  8:  { label: 'Удален',                       color: 'error' },
-  9:  { label: 'Чекаємо ОПЛАТУ',               color: 'warning' },
-  10: { label: 'Передзвонити',                 color: 'warning' },
-  11: { label: 'Зібрано',                      color: 'pink' },
-  12: { label: 'Замовити',                     color: 'warning' },
-  13: { label: 'Комплектується',               color: 'blue' },
-  24: { label: 'Передано кур\'єру',            color: 'darkgreen' },
-  25: { label: 'Виставити Рахунок',            color: 'warning' },
-  35: { label: 'Дозвонитися до клієнта',       color: 'warning' },
-  36: { label: 'Виявити наступну потребу',      color: 'info' },
-  37: { label: 'Знає коли замовлення',          color: 'info' },
-  38: { label: 'На відправку',                 color: 'warning' },
-  39: { label: 'Не знає коли замовлення',       color: 'warning' },
-  40: { label: 'Новий - Постоянные',           color: 'info' },
-  41: { label: 'Не має в наявності',           color: 'error' },
-  42: { label: 'В роботі',                     color: 'warning' },
+  1:  { label: 'Новий',                        color: 'info',      bg: '#3b82f6' },
+  2:  { label: 'Підтверджен',                  color: 'yellow',    bg: '#ffff00' },
+  3:  { label: 'На отправку',                  color: 'orange',    bg: '#ea580c' },
+  4:  { label: 'Отправлен',                    color: 'success',   bg: '#22c55e' },
+  5:  { label: 'Продажа',                      color: 'success',   bg: '#22c55e' },
+  6:  { label: 'Отказ',                        color: 'error',     bg: '#ef4444' },
+  7:  { label: 'Возврат',                      color: 'error',     bg: '#ef4444' },
+  8:  { label: 'Удален',                       color: 'error',     bg: '#ef4444' },
+  9:  { label: 'Чекаємо ОПЛАТУ',               color: 'warning',   bg: '#f59e0b' },
+  10: { label: 'Передзвонити',                 color: 'warning',   bg: '#f59e0b' },
+  11: { label: 'Зібрано',                      color: 'pink',      bg: '#ec4899' },
+  12: { label: 'Замовити',                     color: 'warning',   bg: '#f59e0b' },
+  13: { label: 'Комплектується',               color: 'blue',      bg: '#1d4ed8' },
+  24: { label: 'Передано кур\'єру',            color: 'darkgreen', bg: '#065f46' },
+  25: { label: 'Виставити Рахунок',            color: 'warning',   bg: '#f59e0b' },
+  35: { label: 'Дозвонитися до клієнта',       color: 'warning',   bg: '#f59e0b' },
+  36: { label: 'Виявити наступну потребу',      color: 'info',      bg: '#3b82f6' },
+  37: { label: 'Знає коли замовлення',          color: 'info',      bg: '#3b82f6' },
+  38: { label: 'На відправку',                 color: 'warning',   bg: '#f59e0b' },
+  39: { label: 'Не знає коли замовлення',       color: 'warning',   bg: '#f59e0b' },
+  40: { label: 'Новий - Постоянные',           color: 'info',      bg: '#3b82f6' },
+  41: { label: 'Не має в наявності',           color: 'error',     bg: '#ef4444' },
+  42: { label: 'В роботі',                     color: 'warning',   bg: '#f59e0b' },
 };
 
 // Fixed display order for status groups
@@ -175,6 +176,11 @@ export default function useOrdersData() {
     return (now - orderDate) > 24 * 60 * 60 * 1000;
   };
 
+  const deleteOrder = async (orderId) => {
+    const orderRef = ref(database, `${ordersV3DbPath}/${orderId}`);
+    await remove(orderRef);
+  };
+
   return {
     orders,
     loading,
@@ -189,6 +195,7 @@ export default function useOrdersData() {
     getClientName,
     getShipping,
     isDateOlderThan24h,
+    deleteOrder,
     getStatusInfo,
   };
 }

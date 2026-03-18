@@ -3401,6 +3401,7 @@ td[style*="text-align: center"] {
 .orders-badge--pink      { background: #fdf2f8; color: #be185d; }
 .orders-badge--blue      { background: #eff6ff; color: #1d4ed8; }
 .orders-badge--darkgreen { background: #ecfdf5; color: #065f46; }
+.orders-badge--yellow    { background: #fefce8; color: #854d0e; }
 
 /* Groups */
 .orders-groups {
@@ -3410,7 +3411,6 @@ td[style*="text-align: center"] {
 }
 
 .orders-group {
-  background: white;
   border-radius: 12px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.06);
   overflow: hidden;
@@ -3430,7 +3430,7 @@ td[style*="text-align: center"] {
 }
 
 .orders-group-header:hover {
-  background: #f9fafb;
+  background: rgba(255,255,255,0.3);
 }
 
 .orders-group-left {
@@ -3450,8 +3450,9 @@ td[style*="text-align: center"] {
 }
 
 .orders-group-body {
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid rgba(255,255,255,0.3);
   overflow-x: auto;
+  background: rgba(255,255,255,0.85);
 }
 
 /* Table */
@@ -3554,6 +3555,36 @@ td[style*="text-align: center"] {
   color: #6b7280;
   font-size: 13px;
   max-width: 200px;
+}
+
+.orders-td-actions {
+  white-space: nowrap;
+  text-align: center;
+}
+
+.orders-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.orders-delete-btn:hover {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* Group header text contrast on colored bg */
+.orders-group-count,
+.orders-group-updated {
+  text-shadow: 0 0 4px rgba(255,255,255,0.8);
 }
 
 /* Responsive */
