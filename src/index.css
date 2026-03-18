@@ -3441,13 +3441,13 @@ td[style*="text-align: center"] {
 }
 
 .orders-group-count {
-  color: white;
+  color: inherit;
   font-size: 13px;
   font-weight: 500;
 }
 
 .orders-group-updated {
-  color: white;
+  color: inherit;
   font-size: 12px;
   font-weight: 500;
 }
