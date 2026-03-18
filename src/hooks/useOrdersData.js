@@ -4,16 +4,35 @@ import { database } from '../firebase';
 import { ref, onValue } from 'firebase/database';
 import { ordersV3DbPath } from '../PathDb';
 
-// Status mapping — adjust labels as needed
+// Status mapping from SalesDrive
 const STATUS_MAP = {
-  2:  { label: 'Виконано',          color: 'success' },
-  11: { label: 'Новий',             color: 'info' },
-  13: { label: 'Скасовано',         color: 'error' },
-  24: { label: 'В обробці',         color: 'warning' },
+  1:  { label: 'Новий',                        color: 'info' },
+  2:  { label: 'Підтверджен',                  color: 'success' },
+  3:  { label: 'На отправку',                  color: 'warning' },
+  4:  { label: 'Отправлен',                    color: 'success' },
+  5:  { label: 'Продажа',                      color: 'success' },
+  6:  { label: 'Отказ',                        color: 'error' },
+  7:  { label: 'Возврат',                      color: 'error' },
+  8:  { label: 'Удален',                       color: 'error' },
+  9:  { label: 'Чекаємо ОПЛАТУ',               color: 'warning' },
+  10: { label: 'Передзвонити',                 color: 'warning' },
+  11: { label: 'Зібрано',                      color: 'info' },
+  12: { label: 'Замовити',                     color: 'warning' },
+  13: { label: 'Комплектується',               color: 'warning' },
+  24: { label: 'Передано кур\'єру',            color: 'success' },
+  25: { label: 'Виставити Рахунок',            color: 'warning' },
+  35: { label: 'Дозвонитися до клієнта',       color: 'warning' },
+  36: { label: 'Виявити наступну потребу',      color: 'info' },
+  37: { label: 'Знає коли замовлення',          color: 'info' },
+  38: { label: 'На відправку',                 color: 'warning' },
+  39: { label: 'Не знає коли замовлення',       color: 'warning' },
+  40: { label: 'Новий - Постоянные',           color: 'info' },
+  41: { label: 'Не має в наявності',           color: 'error' },
+  42: { label: 'В роботі',                     color: 'warning' },
 };
 
 // Orders with these statuses are considered "waiting for status change"
-const PENDING_STATUS_IDS = [11, 24];
+const PENDING_STATUS_IDS = [1, 3, 9, 10, 11, 12, 13, 25, 35, 38, 39, 42];
 
 export const getStatusInfo = (statusId) =>
   STATUS_MAP[statusId] || { label: `Статус ${statusId ?? '—'}`, color: 'neutral' };
