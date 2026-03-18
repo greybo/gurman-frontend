@@ -3546,7 +3546,7 @@ td[style*="text-align: center"] {
 }
 
 .orders-td-date--stale {
-  color: #ef4444;
+  color: #ff0000;
   font-weight: 600;
 }
 
