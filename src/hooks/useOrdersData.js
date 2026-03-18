@@ -168,6 +168,13 @@ export default function useOrdersData() {
 
   const getShipping = (order) => order.shippingData?.text || '—';
 
+  const isDateOlderThan24h = (dateString) => {
+    if (!dateString) return false;
+    const orderDate = new Date(dateString.replace(' ', 'T'));
+    const now = new Date();
+    return (now - orderDate) > 24 * 60 * 60 * 1000;
+  };
+
   return {
     orders,
     loading,
@@ -181,6 +188,7 @@ export default function useOrdersData() {
     formatDate,
     getClientName,
     getShipping,
+    isDateOlderThan24h,
     getStatusInfo,
   };
 }

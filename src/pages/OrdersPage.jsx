@@ -24,6 +24,7 @@ export default function OrdersPage() {
     formatDate,
     getClientName,
     getShipping,
+    isDateOlderThan24h,
   } = useOrdersData();
 
   return (
@@ -188,7 +189,7 @@ export default function OrdersPage() {
                                 </div>
                               )}
                             </td>
-                            <td className="orders-td-date">
+                            <td className={`orders-td-date${isDateOlderThan24h(order.updateDate) ? ' orders-td-date--stale' : ''}`}>
                               {formatDate(order.updateDate)}
                             </td>
                             <td className="orders-td-comment">
