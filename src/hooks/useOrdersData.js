@@ -8,7 +8,7 @@ import { ordersV3DbPath } from '../PathDb';
 const STATUS_MAP = {
   1:  { label: 'Новий',                        color: 'info' },
   2:  { label: 'Підтверджен',                  color: 'success' },
-  3:  { label: 'На отправку',                  color: 'warning' },
+  3:  { label: 'На отправку',                  color: 'orange' },
   4:  { label: 'Отправлен',                    color: 'success' },
   5:  { label: 'Продажа',                      color: 'success' },
   6:  { label: 'Отказ',                        color: 'error' },
@@ -16,10 +16,10 @@ const STATUS_MAP = {
   8:  { label: 'Удален',                       color: 'error' },
   9:  { label: 'Чекаємо ОПЛАТУ',               color: 'warning' },
   10: { label: 'Передзвонити',                 color: 'warning' },
-  11: { label: 'Зібрано',                      color: 'info' },
+  11: { label: 'Зібрано',                      color: 'pink' },
   12: { label: 'Замовити',                     color: 'warning' },
-  13: { label: 'Комплектується',               color: 'warning' },
-  24: { label: 'Передано кур\'єру',            color: 'success' },
+  13: { label: 'Комплектується',               color: 'blue' },
+  24: { label: 'Передано кур\'єру',            color: 'darkgreen' },
   25: { label: 'Виставити Рахунок',            color: 'warning' },
   35: { label: 'Дозвонитися до клієнта',       color: 'warning' },
   36: { label: 'Виявити наступну потребу',      color: 'info' },
@@ -31,8 +31,8 @@ const STATUS_MAP = {
   42: { label: 'В роботі',                     color: 'warning' },
 };
 
-// Orders with these statuses are considered "waiting for status change"
-const PENDING_STATUS_IDS = [1, 3, 9, 10, 11, 12, 13, 25, 35, 38, 39, 42];
+// Fixed display order for status groups
+const STATUS_SORT_ORDER = [3, 13, 11, 24];
 
 export const getStatusInfo = (statusId) =>
   STATUS_MAP[statusId] || { label: `Статус ${statusId ?? '—'}`, color: 'neutral' };
@@ -97,22 +97,25 @@ export default function useOrdersData() {
     return groups;
   }, [orders]);
 
-  // Sorted status keys (pending statuses first, then by count desc)
+  // Sorted status keys: fixed order [3, 13, 11, 24], then rest by count desc
   const sortedStatusKeys = useMemo(() => {
     return Object.keys(groupedOrders).sort((a, b) => {
-      const aNum = Number(a);
-      const bNum = Number(b);
-      const aPending = PENDING_STATUS_IDS.includes(aNum) ? 0 : 1;
-      const bPending = PENDING_STATUS_IDS.includes(bNum) ? 0 : 1;
-      if (aPending !== bPending) return aPending - bPending;
+      const aIdx = STATUS_SORT_ORDER.indexOf(Number(a));
+      const bIdx = STATUS_SORT_ORDER.indexOf(Number(b));
+      // Both in fixed order → sort by position
+      if (aIdx !== -1 && bIdx !== -1) return aIdx - bIdx;
+      // Only one in fixed order → it goes first
+      if (aIdx !== -1) return -1;
+      if (bIdx !== -1) return 1;
+      // Neither → sort by count desc
       return groupedOrders[b].length - groupedOrders[a].length;
     });
   }, [groupedOrders]);
 
-  // Orders waiting for status change
+  // Orders waiting for status change (syncSalesDrive === true)
   const pendingOrders = useMemo(() => {
     return orders
-      .filter((o) => PENDING_STATUS_IDS.includes(o.statusId))
+      .filter((o) => o.syncSalesDrive === true)
       .sort((a, b) => (a.updateDate || '').localeCompare(b.updateDate || ''));
   }, [orders]);
 
