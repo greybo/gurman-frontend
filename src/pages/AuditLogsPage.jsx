@@ -1,6 +1,6 @@
 // src/pages/AuditLogsPage.jsx
 import React from 'react';
-import { ClipboardList, RefreshCw, X, Search, Calendar } from 'lucide-react';
+import { ClipboardList, RefreshCw, X, Search, Calendar, Layers, List } from 'lucide-react';
 import useAuditLogsData, { ACTION_LABELS } from '../hooks/useAuditLogsData';
 
 const SOURCE_LABELS = {
@@ -40,6 +40,9 @@ export default function AuditLogsPage() {
     setSearchOrderId,
     clearFilters,
     actionStats,
+    groupByOrder,
+    setGroupByOrder,
+    groupedByOrder,
   } = useAuditLogsData();
 
   const today = new Date();
@@ -175,17 +178,75 @@ export default function AuditLogsPage() {
             <div className="sales-total-label">Записів</div>
             <div className="sales-total-value">{filteredLogs.length}</div>
           </div>
+
+          {/* Кнопка групування */}
+          <div className="sales-filter-group">
+            <label className="sales-filter-label"><Layers size={16} /> Вигляд</label>
+            <button
+              className={`audit-group-toggle ${groupByOrder ? 'audit-group-toggle--active' : ''}`}
+              onClick={() => setGroupByOrder(prev => !prev)}
+            >
+              {groupByOrder ? <Layers size={16} /> : <List size={16} />}
+              {groupByOrder ? 'По замовленнях' : 'Плоский список'}
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Таблиця */}
+      {/* Контент */}
       <div className="sales-table-card">
         {loading ? (
           <div className="sales-loading">
             <RefreshCw size={24} className="spinning" />
             <p>Завантаження...</p>
           </div>
-        ) : filteredLogs.length > 0 ? (
+        ) : filteredLogs.length === 0 ? (
+          <div className="sales-empty">
+            <ClipboardList size={48} />
+            <p>Логів за цей день не знайдено</p>
+          </div>
+        ) : groupByOrder ? (
+          /* === Згрупований вигляд по Order ID === */
+          <div className="audit-grouped-view">
+            {groupedByOrder.map((group) => (
+              <div key={String(group.orderId)} className="audit-order-group">
+                <div className="audit-order-group-header">
+                  <span className="audit-order-group-id">
+                    Замовлення #{group.orderId != null ? group.orderId : '—'}
+                  </span>
+                  <span className="audit-order-group-count">
+                    {group.logs.length} {group.logs.length === 1 ? 'запис' : group.logs.length < 5 ? 'записи' : 'записів'}
+                  </span>
+                </div>
+                <div className="audit-timeline">
+                  {group.logs.map((log, idx) => (
+                    <div key={log._key} className="audit-timeline-item">
+                      <div className="audit-timeline-dot-col">
+                        <div className={`audit-timeline-dot audit-timeline-dot--${(ACTION_LABELS[log.action] || {}).color || 'neutral'}`} />
+                        {idx < group.logs.length - 1 && <div className="audit-timeline-line" />}
+                      </div>
+                      <div className="audit-timeline-content">
+                        <div className="audit-timeline-row">
+                          <span className="audit-timeline-time">
+                            {log.timestamp ? log.timestamp.split(' ')[1] : '—'}
+                          </span>
+                          <ActionBadge action={log.action} />
+                          {log.toStatus != null && (
+                            <span className="audit-status-tag">→ {log.toStatus}</span>
+                          )}
+                        </div>
+                        {log.details && (
+                          <div className="audit-timeline-details">{log.details}</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          /* === Плоска таблиця (як було) === */
           <div className="sales-table-wrapper">
             <table className="sales-table">
               <thead>
@@ -225,11 +286,6 @@ export default function AuditLogsPage() {
                 ))}
               </tbody>
             </table>
-          </div>
-        ) : (
-          <div className="sales-empty">
-            <ClipboardList size={48} />
-            <p>Логів за цей день не знайдено</p>
           </div>
         )}
       </div>

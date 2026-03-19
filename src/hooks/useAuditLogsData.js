@@ -27,6 +27,7 @@ export default function useAuditLogsData() {
   });
   const [selectedAction, setSelectedAction] = useState('');
   const [searchOrderId, setSearchOrderId] = useState('');
+  const [groupByOrder, setGroupByOrder] = useState(false);
 
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,31 @@ export default function useAuditLogsData() {
     return stats;
   }, [logs]);
 
+  // Групування по orderId — для кожного замовлення збираємо всі переходи статусів
+  const groupedByOrder = useMemo(() => {
+    if (!groupByOrder) return [];
+
+    const groups = {};
+    for (const log of filteredLogs) {
+      const id = log.orderId != null ? String(log.orderId) : '__no_order__';
+      if (!groups[id]) {
+        groups[id] = { orderId: log.orderId, logs: [] };
+      }
+      groups[id].logs.push(log);
+    }
+
+    // Сортуємо групи: спочатку ті, що мають більше переходів
+    // Всередині кожної групи логи відсортовані за часом (найстаріші зверху — хронологія)
+    return Object.values(groups)
+      .map(group => ({
+        ...group,
+        logs: [...group.logs].sort((a, b) =>
+          (a.timestamp || '').localeCompare(b.timestamp || '')
+        ),
+      }))
+      .sort((a, b) => b.logs.length - a.logs.length);
+  }, [filteredLogs, groupByOrder]);
+
   const clearFilters = () => {
     setSelectedAction('');
     setSearchOrderId('');
@@ -98,5 +124,8 @@ export default function useAuditLogsData() {
     setSearchOrderId,
     clearFilters,
     actionStats,
+    groupByOrder,
+    setGroupByOrder,
+    groupedByOrder,
   };
 }
