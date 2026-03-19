@@ -1,7 +1,7 @@
 // src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
-import { FileSpreadsheet, TestTube2, LogOut, User, Settings as SettingsIcon, ShoppingCart, ClipboardList, Package } from 'lucide-react';
+import { FileSpreadsheet, TestTube2, LogOut, User, Settings as SettingsIcon, ShoppingCart, Package } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import ExcelManager from './pages/ExcelManager';
@@ -10,7 +10,6 @@ import LoginPage from './pages/LoginPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import SettingsPage from './pages/SettingsPage';
 import SalesPage from './pages/SalesPage';
-import AuditLogsPage from './pages/AuditLogsPage';
 import OrdersPage from './pages/OrdersPage';
 
 function Navigation() {
@@ -64,13 +63,6 @@ function Navigation() {
               >
                 <FileSpreadsheet size={18} />
                 Excel Manager
-              </Link>
-              <Link
-                to="/logs"
-                className={`nav-link ${isActive('/logs') ? 'active' : ''}`}
-              >
-                <ClipboardList size={18} />
-                Логи
               </Link>
               <Link
                 to="/settings"
@@ -130,14 +122,6 @@ function AppRoutes() {
           element={
             <PrivateRoute>
               <OrdersPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/logs"
-          element={
-            <PrivateRoute>
-              <AuditLogsPage />
             </PrivateRoute>
           }
         />
