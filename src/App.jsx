@@ -1,9 +1,9 @@
 // src/App.jsx
-import React, { useState } from 'react';
+import React, { useState, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
   BarChart2, LogOut, Settings as SettingsIcon, ShoppingCart, Package,
-  FileSpreadsheet, Upload, Menu, X, ChevronLeft
+  FileSpreadsheet, Menu, X, ChevronLeft
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
@@ -15,6 +15,10 @@ import SettingsPage from './pages/SettingsPage';
 import SalesPage from './pages/SalesPage';
 import OrdersPage from './pages/OrdersPage';
 
+// Sidebar context to share collapsed state
+const SidebarContext = createContext({ collapsed: false, setCollapsed: () => {} });
+export const useSidebar = () => useContext(SidebarContext);
+
 const navItems = [
   { path: '/', label: 'Аналітика', icon: BarChart2 },
   { path: '/sales', label: 'Продажі', icon: ShoppingCart },
@@ -23,10 +27,9 @@ const navItems = [
   { path: '/settings', label: 'Налаштування', icon: SettingsIcon },
 ];
 
-function Sidebar() {
+function Sidebar({ collapsed, setCollapsed }) {
   const location = useLocation();
   const { currentUser, logout } = useAuth();
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   if (!currentUser) return null;
@@ -132,15 +135,19 @@ function Sidebar() {
 }
 
 function AppLayout({ children }) {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
-    <div className="min-h-screen bg-gray-50/80">
-      <Sidebar />
-      <main className="lg:ml-[260px] transition-all duration-300">
-        <div className="p-6 lg:p-8 max-w-7xl mx-auto">
-          {children}
-        </div>
-      </main>
-    </div>
+    <SidebarContext.Provider value={{ collapsed, setCollapsed }}>
+      <div className="min-h-screen bg-gray-50/80">
+        <Sidebar collapsed={collapsed} setCollapsed={setCollapsed} />
+        <main className={`transition-all duration-300 ${collapsed ? 'lg:ml-[72px]' : 'lg:ml-[260px]'}`}>
+          <div className="p-6 lg:p-8 max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
+    </SidebarContext.Provider>
   );
 }
 

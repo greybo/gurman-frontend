@@ -1,5 +1,6 @@
 // src/pages/SettingsPage.jsx
 import React, { useState } from 'react';
+import { SlidersHorizontal, Users, Send, Settings } from 'lucide-react';
 import ThresholdSettings from './settings/ThresholdSettings';
 import UsersManagement from './settings/UsersManagement';
 import TelegramUsersSettings from './settings/TelegramUsersSettings';
@@ -8,84 +9,64 @@ import useThresholdSettings from '../hooks/useThresholdSettings';
 import useUsersManagement from '../hooks/useUsersManagement';
 import useTelegramUsers from '../hooks/useTelegramUsers';
 
+const tabs = [
+  { id: 'scan-threshold', label: 'Поріг сканування', icon: SlidersHorizontal },
+  { id: 'users', label: 'Користувачі', icon: Users },
+  { id: 'telegram-users', label: 'Telegram', icon: Send },
+  { id: 'general', label: 'Загальні', icon: Settings },
+];
+
 export default function SettingsPage() {
   const [activeItem, setActiveItem] = useState('scan-threshold');
 
-  // Import all logic from custom hooks
   const thresholdSettings = useThresholdSettings();
   const usersManagement = useUsersManagement();
   const telegramUsers = useTelegramUsers();
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Налаштування</h1>
-        <p className="text-gray-600">Керуйте параметрами застосунку</p>
+    <div>
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 mb-1">Налаштування</h1>
+        <p className="text-gray-500 text-sm">Керуйте параметрами застосунку</p>
       </div>
 
-      <div className="flex gap-6">
-        <aside className="w-48">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 flex flex-col gap-2">
+      {/* Horizontal Tabs */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="flex gap-1 -mb-px">
+          {tabs.map(({ id, label, icon: Icon }) => (
             <button
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
-                activeItem === 'scan-threshold'
-                  ? 'bg-brand-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              onClick={() => setActiveItem('scan-threshold')}
+              key={id}
+              onClick={() => setActiveItem(id)}
+              className={`
+                flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap
+                ${activeItem === id
+                  ? 'border-brand-600 text-brand-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }
+              `}
             >
-              Встановити поріг сканування
+              <Icon size={16} />
+              {label}
             </button>
-            <button
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
-                activeItem === 'users'
-                  ? 'bg-brand-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              onClick={() => setActiveItem('users')}
-            >
-              Користувачі
-            </button>
-            <button
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
-                activeItem === 'telegram-users'
-                  ? 'bg-brand-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              onClick={() => setActiveItem('telegram-users')}
-            >
-              Telegram Користувачі
-            </button>
-            <button
-              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-colors text-left ${
-                activeItem === 'general'
-                  ? 'bg-brand-600 text-white'
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
-              onClick={() => setActiveItem('general')}
-            >
-              Загальні
-            </button>
-          </div>
-        </aside>
+          ))}
+        </nav>
+      </div>
 
-        <main className="flex-1">
-          {activeItem === 'scan-threshold' && (
-            <ThresholdSettings {...thresholdSettings} />
-          )}
-
-          {activeItem === 'users' && (
-            <UsersManagement {...usersManagement} />
-          )}
-
-          {activeItem === 'telegram-users' && (
-            <TelegramUsersSettings {...telegramUsers} />
-          )}
-
-          {activeItem === 'general' && (
-            <GeneralSettings />
-          )}
-        </main>
+      {/* Content */}
+      <div>
+        {activeItem === 'scan-threshold' && (
+          <ThresholdSettings {...thresholdSettings} />
+        )}
+        {activeItem === 'users' && (
+          <UsersManagement {...usersManagement} />
+        )}
+        {activeItem === 'telegram-users' && (
+          <TelegramUsersSettings {...telegramUsers} />
+        )}
+        {activeItem === 'general' && (
+          <GeneralSettings />
+        )}
       </div>
     </div>
   );
