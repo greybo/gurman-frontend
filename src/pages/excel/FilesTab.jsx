@@ -1,7 +1,7 @@
 // src/pages/excel/FilesTab.jsx
 import React from 'react';
-import { 
-  FileSpreadsheet, Search, Trash2, Calendar, Hash, X, RefreshCw 
+import {
+  FileSpreadsheet, Search, Trash2, Calendar, Hash, X, RefreshCw
 } from 'lucide-react';
 
 export default function FilesTab({
@@ -21,57 +21,66 @@ export default function FilesTab({
   return (
     <>
       {/* Refresh Button */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-        <button onClick={fetchFilesList} className="refresh-button">
-          <RefreshCw size={18} style={{ marginRight: '8px' }} />
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={fetchFilesList}
+          className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 transition-colors"
+        >
+          <RefreshCw size={18} />
           Оновити список
         </button>
       </div>
 
       {/* Files Layout */}
-      <div className="files-layout">
+      <div className="grid grid-cols-3 gap-6">
         {/* Left Panel - Files List */}
-        <div className="files-sidebar">
-          <div className="sidebar-header">
-            <h2 className="sidebar-title">Список файлів ({files.length})</h2>
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="mb-4">
+            <h2 className="font-bold text-gray-900">Список файлів ({files.length})</h2>
           </div>
 
           {loading && !fileData && (
-            <div className="sidebar-loading">
-              <div className="spinner"></div>
-              <p>Завантаження...</p>
+            <div className="flex flex-col items-center justify-center py-8 gap-2">
+              <div className="w-6 h-6 border-2 border-gray-300 border-t-brand-600 rounded-full animate-spin"></div>
+              <p className="text-gray-500 text-sm">Завантаження...</p>
             </div>
           )}
 
           {error && (
-            <div className="error-message">{error}</div>
-          )}
-
-          {!loading && files.length === 0 && (
-            <div className="empty-sidebar">
-              <FileSpreadsheet size={48} />
-              <p>Немає збережених файлів</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-red-700 text-sm">
+              {error}
             </div>
           )}
 
-          <div className="files-list">
+          {!loading && files.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-8 gap-2">
+              <FileSpreadsheet size={48} className="text-gray-300" />
+              <p className="text-gray-500 text-sm">Немає збережених файлів</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
             {files.map((file) => (
               <div
                 key={file.id}
-                className={`file-item ${selectedFileId === file.id ? 'active' : ''}`}
+                className={`p-3 rounded-lg border transition-colors cursor-pointer flex items-center justify-between ${
+                  selectedFileId === file.id
+                    ? 'bg-brand-50 border-brand-200'
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                }`}
                 onClick={() => fetchFileData(file.id)}
               >
-                <div className="file-item-content">
-                  <FileSpreadsheet size={20} className="file-icon" />
-                  <div className="file-info">
-                    <h3 className="file-name">{file.fileName}</h3>
-                    <div className="file-meta">
-                      <span className="file-meta-item">
-                        <Hash size={14} />
+                <div className="flex-1 flex items-center gap-3">
+                  <FileSpreadsheet size={20} className="text-gray-600 flex-shrink-0" />
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-gray-900 text-sm truncate">{file.fileName}</h3>
+                    <div className="flex items-center gap-2 text-xs text-gray-600 mt-1">
+                      <span className="flex items-center gap-1">
+                        <Hash size={12} />
                         {file.rowCount} рядків
                       </span>
-                      <span className="file-meta-item">
-                        <Calendar size={14} />
+                      <span className="flex items-center gap-1">
+                        <Calendar size={12} />
                         {formatDate(file.uploadedAt)}
                       </span>
                     </div>
@@ -82,7 +91,7 @@ export default function FilesTab({
                     e.stopPropagation();
                     deleteFile(file.id);
                   }}
-                  className="delete-icon-button"
+                  className="p-1 text-gray-400 hover:text-red-600 transition-colors flex-shrink-0"
                   title="Видалити"
                 >
                   <Trash2 size={16} />
@@ -93,28 +102,28 @@ export default function FilesTab({
         </div>
 
         {/* Right Panel - File Data */}
-        <div className="files-content">
+        <div className="col-span-2 bg-white rounded-xl border border-gray-200 p-6">
           {!fileData && !loading && (
-            <div className="empty-content">
-              <FileSpreadsheet size={80} />
-              <h3>Виберіть файл</h3>
-              <p>Натисніть на файл у списку, щоб переглянути його дані</p>
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <FileSpreadsheet size={80} className="text-gray-300" />
+              <h3 className="font-semibold text-gray-900">Виберіть файл</h3>
+              <p className="text-gray-600 text-sm">Натисніть на файл у списку, щоб переглянути його дані</p>
             </div>
           )}
 
           {loading && fileData && (
-            <div className="content-loading">
-              <div className="spinner"></div>
-              <p>Завантаження даних...</p>
+            <div className="flex flex-col items-center justify-center py-16 gap-4">
+              <div className="w-8 h-8 border-2 border-gray-300 border-t-brand-600 rounded-full animate-spin"></div>
+              <p className="text-gray-600">Завантаження даних...</p>
             </div>
           )}
 
           {fileData && !loading && (
             <>
-              <div className="content-header">
+              <div className="mb-6 pb-6 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="content-title">{fileData.fileName}</h2>
-                  <div className="content-meta">
+                  <h2 className="text-xl font-bold text-gray-900">{fileData.fileName}</h2>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
                     <span>ID: {fileData.id}</span>
                     <span>•</span>
                     <span>{fileData.rowCount} рядків</span>
@@ -122,18 +131,18 @@ export default function FilesTab({
                     <span>Завантажено: {formatDate(fileData.uploadedAt)}</span>
                   </div>
                 </div>
-                <div className="search-wrapper">
-                  <Search className="search-icon" />
+                <div className="relative w-64">
+                  <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                   <input
                     type="text"
                     placeholder="Пошук в даних..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="search-input"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 pl-10 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
                   />
                   {searchTerm && (
                     <button
-                      className="search-clear-button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                       onClick={() => setSearchTerm('')}
                       title="Очистити пошук"
                     >
@@ -143,24 +152,24 @@ export default function FilesTab({
                 </div>
               </div>
 
-              <div className="data-info">
+              <div className="text-sm text-gray-600 mb-4">
                 Знайдено: {filteredFileData.length} з {fileData.rowCount} рядків
               </div>
 
-              <div className="table-wrapper">
-                <table>
-                  <thead>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-200">
                     <tr>
                       {fileData.headers.map((header, i) => (
-                        <th key={i}>{header}</th>
+                        <th key={i} className="px-6 py-3 text-left font-semibold text-gray-900">{header}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {filteredFileData.map((row, i) => (
-                      <tr key={i}>
+                      <tr key={i} className="border-b border-gray-200 hover:bg-gray-50">
                         {row.map((cell, j) => (
-                          <td key={j}>{cell?.toString() || '-'}</td>
+                          <td key={j} className="px-6 py-3 text-gray-700">{cell?.toString() || '-'}</td>
                         ))}
                       </tr>
                     ))}
@@ -169,7 +178,7 @@ export default function FilesTab({
               </div>
 
               {filteredFileData.length === 0 && searchTerm && (
-                <div className="no-results">
+                <div className="text-center text-gray-500 py-8">
                   Нічого не знайдено за запитом "{searchTerm}"
                 </div>
               )}

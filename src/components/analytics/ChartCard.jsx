@@ -10,31 +10,38 @@ const timeIntervals = [
 
 export const ChartCard = ({ chartData, timeInterval, onTimeIntervalChange, loading }) => {
   return (
-    <div className="chart-card">
-      <div className="chart-header">
-        <h3>Графік активності</h3>
-        <div className="chart-controls">
-          <div className="time-interval-buttons">
-            {timeIntervals.map(interval => (
-              <button
-                key={interval.value}
-                className={`interval-button ${timeInterval === interval.value ? 'active' : ''}`}
-                onClick={() => onTimeIntervalChange(interval.value)}
-              >
-                {interval.label}
-              </button>
-            ))}
-          </div>
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-lg font-semibold text-gray-900">Графік активності</h3>
+
+        {/* Time Interval Buttons */}
+        <div className="flex gap-2">
+          {timeIntervals.map(interval => (
+            <button
+              key={interval.value}
+              onClick={() => onTimeIntervalChange(interval.value)}
+              className={`px-4 py-2 rounded-full font-medium transition-all ${
+                timeInterval === interval.value
+                  ? 'bg-brand-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {interval.label}
+            </button>
+          ))}
         </div>
       </div>
+
+      {/* Chart Content */}
       {loading ? (
-        <div className="chart-loading">
-          <div className="spinner"></div>
-          <p>Завантаження даних...</p>
+        <div className="flex flex-col items-center justify-center h-96">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mb-4"></div>
+          <p className="text-gray-600">Завантаження даних...</p>
         </div>
       ) : chartData.length === 0 ? (
-        <div className="chart-empty">
-          <p>Немає даних для відображення</p>
+        <div className="flex items-center justify-center h-96">
+          <p className="text-gray-500">Немає даних для відображення</p>
         </div>
       ) : (
         <ResponsiveContainer width="100%" height={400}>

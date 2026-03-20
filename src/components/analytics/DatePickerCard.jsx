@@ -15,22 +15,23 @@ export const DatePickerCard = ({ selectedDate, datesWithData, onDateChange }) =>
   };
 
   return (
-    <div className="analytics-date-card compact">
-      <div className="date-card-header">
-        <CalendarIcon size={20} />
-        <h3>Вибір дати</h3>
+    <div className="bg-white rounded-xl border border-gray-200 p-6">
+      {/* Header */}
+      <div className="flex items-center gap-3 mb-4">
+        <CalendarIcon size={20} className="text-gray-700" />
+        <h3 className="text-lg font-semibold text-gray-900">Вибір дати</h3>
       </div>
-      <div className="date-card-body">
-        <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0' }}>
-          <DatePicker
-            selected={selectedDate}
-            onChange={onDateChange}
-            dateFormat="dd/MM/yyyy"
-            inline
-            dayClassName={(date) => isDateWithData(date) ? 'date-with-data' : undefined}
-            maxDate={new Date()}
-          />
-        </div>
+
+      {/* Date Picker */}
+      <div className="flex justify-center py-2">
+        <DatePicker
+          selected={selectedDate}
+          onChange={onDateChange}
+          dateFormat="dd/MM/yyyy"
+          inline
+          dayClassName={(date) => isDateWithData(date) ? 'date-with-data' : undefined}
+          maxDate={new Date()}
+        />
       </div>
     </div>
   );

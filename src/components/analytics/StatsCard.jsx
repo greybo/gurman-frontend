@@ -7,18 +7,23 @@ export const StatsCard = ({ chartData }) => {
   const totalScans = chartData.reduce((sum, item) => sum + item.total, 0);
 
   return (
-    <div className="stats-grid">
-      <div className="stat-card success">
-        <div className="stat-value">{successScans}</div>
-        <div className="stat-label">Успішних</div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      {/* Success Card */}
+      <div className="bg-white rounded-xl border border-gray-200 border-t-4 border-t-emerald-500 p-6">
+        <div className="text-gray-600 text-sm font-medium mb-2">Успішних</div>
+        <div className="text-4xl font-bold text-emerald-600">{successScans}</div>
       </div>
-      <div className="stat-card error">
-        <div className="stat-value">{failScans}</div>
-        <div className="stat-label">Помилок</div>
+
+      {/* Error Card */}
+      <div className="bg-white rounded-xl border border-gray-200 border-t-4 border-t-red-500 p-6">
+        <div className="text-gray-600 text-sm font-medium mb-2">Помилок</div>
+        <div className="text-4xl font-bold text-red-600">{failScans}</div>
       </div>
-      <div className="stat-card total">
-        <div className="stat-value">{totalScans}</div>
-        <div className="stat-label">Всього</div>
+
+      {/* Total Card */}
+      <div className="bg-white rounded-xl border border-gray-200 border-t-4 border-t-brand-600 p-6">
+        <div className="text-gray-600 text-sm font-medium mb-2">Всього</div>
+        <div className="text-4xl font-bold text-brand-600">{totalScans}</div>
       </div>
     </div>
   );

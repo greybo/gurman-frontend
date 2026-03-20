@@ -10,7 +10,7 @@ export default function LoginPage() {
   const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  
+
   const { signup, login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
 
@@ -29,7 +29,7 @@ export default function LoginPage() {
     } catch (error) {
       console.error('Auth error:', error);
       setError(
-        error.code === 'auth/email-already-in-use' 
+        error.code === 'auth/email-already-in-use'
           ? 'Email вже використовується'
           : error.code === 'auth/weak-password'
           ? 'Пароль має бути мінімум 6 символів'
@@ -60,25 +60,29 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <FileSpreadsheet className="login-logo" />
-          <h1 className="login-title">Gurman</h1>
-          <p className="login-subtitle">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-white rounded-xl border border-gray-200 p-8 shadow-lg">
+        <div className="text-center mb-8">
+          <div className="flex justify-center mb-4">
+            <div className="p-3 bg-brand-50 rounded-lg">
+              <FileSpreadsheet size={32} className="text-brand-600" />
+            </div>
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Gurman</h1>
+          <p className="text-gray-600">
             {isSignup ? 'Створити обліковий запис' : 'Увійти в систему'}
           </p>
         </div>
 
         {error && (
-          <div className="auth-error">
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-red-700 text-sm">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label className="form-label">
+        <form onSubmit={handleSubmit} className="space-y-4 mb-6">
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <Mail size={18} />
               Email
             </label>
@@ -87,13 +91,13 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="your@email.com"
-              className="form-input"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
               required
             />
           </div>
 
-          <div className="form-group">
-            <label className="form-label">
+          <div>
+            <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
               <Lock size={18} />
               Пароль
             </label>
@@ -102,15 +106,15 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="form-input"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
               required
               minLength={6}
             />
           </div>
 
-          <button 
-            type="submit" 
-            className="login-button"
+          <button
+            type="submit"
+            className="w-full bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             <LogIn size={20} />
@@ -118,13 +122,18 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="divider">
-          <span>або</span>
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-gray-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-gray-600">або</span>
+          </div>
         </div>
 
-        <button 
+        <button
           onClick={handleGoogleLogin}
-          className="google-button"
+          className="w-full border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
         >
           <svg width="20" height="20" viewBox="0 0 20 20">
@@ -136,13 +145,13 @@ export default function LoginPage() {
           Увійти через Google
         </button>
 
-        <div className="login-footer">
-          <button 
+        <div className="mt-6 text-center">
+          <button
             onClick={() => setIsSignup(!isSignup)}
-            className="toggle-auth"
+            className="text-sm text-brand-600 hover:text-brand-700 font-medium transition-colors"
           >
-            {isSignup 
-              ? 'Вже є акаунт? Увійти' 
+            {isSignup
+              ? 'Вже є акаунт? Увійти'
               : 'Немає акаунту? Зареєструватися'
             }
           </button>

@@ -1,43 +1,27 @@
 import React, { useState } from 'react';
-import { Search, X } from 'lucide-react'; // Переконайтеся, що у вас встановлено lucide-react або змініть на вашу бібліотеку іконок
+import { Search, X } from 'lucide-react';
 
 export default function GeneralSettings() {
-  // Стан для збереження тексту пошуку
   const [searchTerm, setSearchTerm] = useState('');
 
   return (
     <div>
-      <h2 className="content-title">Загальні налаштування</h2>
-      <p className="page-subtitle">Тут будуть інші параметри</p>
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">Загальні налаштування</h2>
+      <p className="text-gray-600 mb-6">Тут будуть інші параметри</p>
 
-      {/* --- Початок блоку пошуку --- */}
-      <div
-        style={{
-          marginTop: '24px',        // Відступ зверху
-          position: 'relative',     // Батьківський контейнер для абсолютного позиціонування іконок
-          width: '95%',            // Ширина контейнера
-          maxWidth: '20em'         // Обмеження ширини, щоб поле не було на весь екран
-        }}
-      >
-        {/* Іконка лупи (зліва) */}
-        <Search
-          size={20}
-          className="search-icon"
-        />
-
-        {/* Поле вводу */}
+      {/* Пошук */}
+      <div className="relative w-full max-w-md">
+        <Search size={20} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
           placeholder="Пошук..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
+          className="w-full border border-gray-200 rounded-lg px-3 py-2.5 pl-10 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
         />
-
-        {/* Кнопка очищення (справа) - з'являється тільки якщо є текст */}
         {searchTerm && (
           <button
-            className="search-clear-button"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
             onClick={() => setSearchTerm('')}
             title="Очистити"
           >
@@ -45,8 +29,6 @@ export default function GeneralSettings() {
           </button>
         )}
       </div>
-      {/* --- Кінець блоку пошуку --- */}
-
     </div>
   );
 }

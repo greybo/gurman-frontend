@@ -1,6 +1,5 @@
 // src/pages/AnalyticsPage.jsx
 import React, { useEffect } from 'react';
-import { BarChart2 } from 'lucide-react';
 import { useAnalyticsData } from '../hooks/useAnalyticsData';
 import {
   DatePickerCard,
@@ -64,48 +63,50 @@ export default function AnalyticsPage() {
   }, []);
 
   return (
-    <div className="page-container">
-      <div className="analytics-header">
-        <div className="analytics-title-section">
-          <BarChart2 size={32} className="analytics-icon" />
-          <div>
-            <h1 className="analytics-title">Аналітика логів</h1>
-            <p className="analytics-subtitle">Візуалізація даних по користувачам та діям</p>
-          </div>
+    <div className="min-h-screen bg-gray-50 p-8">
+      <div className="animate-fade-in">
+        {/* Page Header */}
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Аналітика логів</h1>
+          <p className="text-gray-600">Візуалізація даних по користувачам та діям</p>
         </div>
-      </div>
 
-      <OrdersCard
-        scanThresholdData={scanThresholdData}
-        ordersLoading={ordersLoading}
-        ordersError={ordersError}
-      />
-
-      <div className="analytics-controls-row">
-        <DatePickerCard
-          selectedDate={selectedDate}
-          datesWithData={datesWithData}
-          onDateChange={handleDateChange}
+        {/* Orders Card */}
+        <OrdersCard
+          scanThresholdData={scanThresholdData}
+          ordersLoading={ordersLoading}
+          ordersError={ordersError}
         />
 
-        <FiltersCard
-          users={users}
-          actions={actions}
-          selectedUser={selectedUser}
-          selectedAction={selectedAction}
-          onUserChange={setSelectedUser}
-          onActionChange={setSelectedAction}
+        {/* Date Picker and Filters Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <DatePickerCard
+            selectedDate={selectedDate}
+            datesWithData={datesWithData}
+            onDateChange={handleDateChange}
+          />
+
+          <FiltersCard
+            users={users}
+            actions={actions}
+            selectedUser={selectedUser}
+            selectedAction={selectedAction}
+            onUserChange={setSelectedUser}
+            onActionChange={setSelectedAction}
+          />
+        </div>
+
+        {/* Stats Card */}
+        <StatsCard chartData={chartData} />
+
+        {/* Chart Card */}
+        <ChartCard
+          chartData={chartData}
+          timeInterval={timeInterval}
+          onTimeIntervalChange={setTimeInterval}
+          loading={loading}
         />
       </div>
-
-      <StatsCard chartData={chartData} />
-
-      <ChartCard
-        chartData={chartData}
-        timeInterval={timeInterval}
-        onTimeIntervalChange={setTimeInterval}
-        loading={loading}
-      />
     </div>
   );
 }

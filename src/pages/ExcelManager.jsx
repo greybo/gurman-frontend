@@ -15,61 +15,39 @@ export default function ExcelManager() {
   const filesLogic = useFilesList(activeTab);
 
   return (
-    <div className="page-container">
-      <div className="main-wrapper">
-        {/* Header with Tabs */}
-        <div className="upload-card">
-          <div className="upload-header">
-            <div className="upload-title-wrapper">
-              <FileSpreadsheet />
-              <h1 className="upload-title">Excel Manager</h1>
-            </div>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div>
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <FileSpreadsheet size={32} className="text-brand-600" />
+            <h1 className="text-3xl font-bold text-gray-900">Excel Manager</h1>
           </div>
+        </div>
 
-          {/* Tabs Navigation */}
-          <div style={{ 
-            display: 'flex', 
-            gap: '8px', 
-            marginBottom: '24px',
-            borderBottom: '2px solid #e5e7eb',
-            paddingBottom: '0'
-          }}>
+        {/* Tabs Navigation */}
+        <div className="bg-white rounded-xl border border-gray-200 p-6">
+          <div className="flex gap-2 border-b border-gray-200 mb-6">
             <button
               onClick={() => setActiveTab('upload')}
-              style={{
-                padding: '12px 24px',
-                background: activeTab === 'upload' ? '#5b5fc7' : 'transparent',
-                color: activeTab === 'upload' ? 'white' : '#6b7280',
-                border: 'none',
-                borderBottom: activeTab === 'upload' ? '3px solid #5b5fc7' : '3px solid transparent',
-                borderRadius: '8px 8px 0 0',
-                fontSize: '15px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontFamily: 'inherit'
-              }}
+              className={`px-4 py-2.5 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                activeTab === 'upload'
+                  ? 'text-brand-600 border-b-2 border-brand-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              <Upload size={18} style={{ verticalAlign: 'middle', marginRight: '8px' }} />
+              <Upload size={18} />
               Завантажити файл
             </button>
             <button
               onClick={() => setActiveTab('files')}
-              style={{
-                padding: '12px 24px',
-                background: activeTab === 'files' ? '#5b5fc7' : 'transparent',
-                color: activeTab === 'files' ? 'white' : '#6b7280',
-                border: 'none',
-                borderBottom: activeTab === 'files' ? '3px solid #5b5fc7' : '3px solid transparent',
-                borderRadius: '8px 8px 0 0',
-                fontSize: '15px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontFamily: 'inherit'
-              }}
+              className={`px-4 py-2.5 rounded-t-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                activeTab === 'files'
+                  ? 'text-brand-600 border-b-2 border-brand-600'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              <FileSpreadsheet size={18} style={{ verticalAlign: 'middle', marginRight: '8px' }} />
+              <FileSpreadsheet size={18} />
               Мої файли ({filesLogic.files.length})
             </button>
           </div>
