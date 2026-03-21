@@ -6,7 +6,7 @@ export const ordersV3DbPath = `${prefixPath}/orders_DB_V3`;
 export const usersDbPath = `${prefixPath}/user_db_V2`;
 export const usersTgDbPath = `${prefixPath}/tg_user_db`;
 export const thresholdMessageDBPath = `${prefixPath}/scan_threshold_message_db`;
-export const tgChatsDbPath = `${prefixPath}/tgChats`;
+export const tgChatsDbPath = `${prefixPath}/tg_chat_db`;
 
 
 export function thresholdDataDBPath() {
