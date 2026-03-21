@@ -7,6 +7,8 @@ export const usersDbPath = `${prefixPath}/user_db_V2`;
 export const usersTgDbPath = `${prefixPath}/tg_user_db`;
 export const thresholdMessageDBPath = `${prefixPath}/scan_threshold_message_db`;
 export const tgChatsDbPath = `${prefixPath}/tg_chat_db`;
+export const workersDbPath = `${prefixPath}/workers_db`;
+export const settingsAppDbPath = `${prefixPath}/settings_app_db`;
 
 
 export function thresholdDataDBPath() {
