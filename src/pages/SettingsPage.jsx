@@ -1,18 +1,21 @@
 // src/pages/SettingsPage.jsx
 import React, { useState } from 'react';
-import { SlidersHorizontal, Users, Send, Settings } from 'lucide-react';
+import { SlidersHorizontal, Users, Send, Settings, MessageSquare } from 'lucide-react';
 import ThresholdSettings from './settings/ThresholdSettings';
 import UsersManagement from './settings/UsersManagement';
 import TelegramUsersSettings from './settings/TelegramUsersSettings';
+import TelegramChatsSettings from './settings/TelegramChatsSettings';
 import GeneralSettings from './settings/GeneralSettings';
 import useThresholdSettings from '../hooks/useThresholdSettings';
 import useUsersManagement from '../hooks/useUsersManagement';
 import useTelegramUsers from '../hooks/useTelegramUsers';
+import useTelegramChats from '../hooks/useTelegramChats';
 
 const tabs = [
   { id: 'scan-threshold', label: 'Поріг сканування', icon: SlidersHorizontal },
   { id: 'users', label: 'Користувачі', icon: Users },
   { id: 'telegram-users', label: 'Telegram', icon: Send },
+  { id: 'telegram-chats', label: 'Чати', icon: MessageSquare },
   { id: 'general', label: 'Загальні', icon: Settings },
 ];
 
@@ -22,6 +25,7 @@ export default function SettingsPage() {
   const thresholdSettings = useThresholdSettings();
   const usersManagement = useUsersManagement();
   const telegramUsers = useTelegramUsers();
+  const telegramChats = useTelegramChats();
 
   return (
     <div>
@@ -48,6 +52,11 @@ export default function SettingsPage() {
             >
               <Icon size={16} />
               {label}
+              {id === 'telegram-chats' && telegramChats.totalUnread > 0 && (
+                <span className="bg-red-500 text-white text-xs font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full px-1">
+                  {telegramChats.totalUnread}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -63,6 +72,9 @@ export default function SettingsPage() {
         )}
         {activeItem === 'telegram-users' && (
           <TelegramUsersSettings {...telegramUsers} />
+        )}
+        {activeItem === 'telegram-chats' && (
+          <TelegramChatsSettings {...telegramChats} />
         )}
         {activeItem === 'general' && (
           <GeneralSettings />

@@ -1,7 +1,7 @@
 // src/firebase.js
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getDatabase } from 'firebase/database';
+import { getDatabase, connectDatabaseEmulator } from 'firebase/database';
 
 // Ваша конфігурація Firebase
 // Отримайте з Firebase Console -> Project Settings -> General -> Your apps
@@ -23,5 +23,11 @@ export const auth = getAuth(app);
 
 // Ініціалізація Realtime Database
 export const database = getDatabase(app);
+
+// Підключення до емулятора для локальної розробки
+if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {
+  connectDatabaseEmulator(database, '127.0.0.1', 9000);
+  console.log('🔧 Connected to Firebase Database Emulator');
+}
 
 export default app;
