@@ -1,8 +1,9 @@
 // src/pages/settings/WorkersManagement.jsx
 import React from 'react';
 import {
-  Users, Lock, Save, RefreshCw, Trash2, Plus, X,
-  ChevronDown, ToggleLeft, ToggleRight, Mail
+  Users, Lock, Save, RefreshCw, Trash2, Plus, X, Hash,
+  ChevronDown, ToggleLeft, ToggleRight, Mail, Palette,
+  FileText, Package, Boxes, SearchCode
 } from 'lucide-react';
 
 export default function WorkersManagement({
@@ -20,13 +21,31 @@ export default function WorkersManagement({
   setNewWorker,
   addWorker,
   updateWorkerField,
+  handleCheckboxChange,
   saveWorker,
   deleteWorker,
   toggleActive,
   toggleKioskMode,
-  setKioskEmail
+  setKioskEmail,
+  // Telegram dropdown
+  searchTerm,
+  setSearchTerm,
+  showDropdown,
+  setShowDropdown,
+  filteredUsersTg,
+  handleSelectChatId,
+  dropdownRef,
+  // Color helpers
+  argbToHex
 }) {
   const selectedWorker = workers[selectedWorkerId] || {};
+
+  // Get color value (convert ARGB to hex if needed)
+  const getColorValue = (color) => {
+    if (!color) return '#3b82f6';
+    if (typeof color === 'string') return color;
+    return argbToHex(color);
+  };
 
   return (
     <div>
@@ -200,51 +219,209 @@ export default function WorkersManagement({
                 </div>
               </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <Users size={14} />
-                    Ім'я
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
-                    value={selectedWorker.name || ''}
-                    onChange={(e) => updateWorkerField(selectedWorkerId, 'name', e.target.value)}
-                    placeholder="Ім'я робітника"
-                  />
-                </div>
+              {/* Базова інформація */}
+              <div className="mb-8">
+                <h4 className="font-semibold text-gray-900 mb-4">Базова інформація</h4>
+                <div className="space-y-4">
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                      <Users size={14} />
+                      Ім'я
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
+                      value={selectedWorker.name || ''}
+                      onChange={(e) => updateWorkerField(selectedWorkerId, 'name', e.target.value)}
+                      placeholder="Ім'я робітника"
+                    />
+                  </div>
 
-                <div>
-                  <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                    <Lock size={14} />
-                    PIN
-                  </label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
-                    value={selectedWorker.pin || ''}
-                    onChange={(e) => updateWorkerField(selectedWorkerId, 'pin', e.target.value)}
-                    placeholder="PIN (6 цифр)"
-                    maxLength="6"
-                  />
-                </div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                      <Lock size={14} />
+                      PIN
+                    </label>
+                    <input
+                      type="text"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
+                      value={selectedWorker.pin || ''}
+                      onChange={(e) => updateWorkerField(selectedWorkerId, 'pin', e.target.value)}
+                      placeholder="PIN (6 цифр)"
+                      maxLength="6"
+                    />
+                  </div>
 
-                <div>
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                      <Palette size={14} />
+                      Колір
+                    </label>
+                    <div className="flex gap-2 items-center">
+                      <input
+                        type="color"
+                        className="w-12 h-10 rounded-lg border border-gray-200 cursor-pointer"
+                        value={getColorValue(selectedWorker.color)}
+                        onChange={(e) => updateWorkerField(selectedWorkerId, 'color', e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        className="flex-1 border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors"
+                        value={getColorValue(selectedWorker.color)}
+                        onChange={(e) => updateWorkerField(selectedWorkerId, 'color', e.target.value)}
+                        placeholder="#3b82f6"
+                        maxLength="7"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Chat ID (Telegram) dropdown */}
+                  <div>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
+                      <Hash size={14} />
+                      Chat ID (Telegram)
+                    </label>
+
+                    <div className="relative" ref={dropdownRef}>
+                      <input
+                        type="text"
+                        value={searchTerm || selectedWorker.chatId || ''}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          updateWorkerField(selectedWorkerId, 'chatId', e.target.value);
+                          setShowDropdown(true);
+                        }}
+                        onFocus={() => setShowDropdown(true)}
+                        placeholder="Почніть вводити chatId або ім'я"
+                        className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors pr-10"
+                      />
+
+                      <button
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-600 hover:text-gray-900 transition-colors"
+                        onClick={() => setShowDropdown(!showDropdown)}
+                        type="button"
+                      >
+                        <ChevronDown size={18} />
+                      </button>
+
+                      {showDropdown && (
+                        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                          {filteredUsersTg.length > 0 ? (
+                            filteredUsersTg.map(([chatId, user]) => (
+                              <div
+                                key={chatId}
+                                onClick={() => handleSelectChatId(chatId)}
+                                className="px-3 py-2.5 border-b border-gray-200 last:border-b-0 hover:bg-gray-50 cursor-pointer flex items-center gap-2"
+                              >
+                                <div className="flex items-center gap-1 text-xs font-medium text-gray-600">
+                                  <Hash size={12} />
+                                  {chatId}
+                                </div>
+                                <div className="flex items-center gap-1 text-xs text-gray-600">
+                                  <Users size={11} />
+                                  {user.name || 'Без імені'}
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="px-3 py-3 text-sm text-gray-500 text-center">
+                              Не знайдено
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 accent-brand-600 rounded cursor-pointer"
+                        checked={!!selectedWorker.active}
+                        onChange={() => toggleActive(selectedWorkerId)}
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2.5 h-2.5 rounded-full ${selectedWorker.active ? 'bg-green-500' : 'bg-gray-400'}`} />
+                        <span className="text-sm font-medium text-gray-900">
+                          {selectedWorker.active ? 'Активний' : 'Неактивний'}
+                        </span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Дозволи */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-4">Дозволи</h4>
+                <div className="grid grid-cols-2 gap-4">
+
                   <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
                     <input
                       type="checkbox"
                       className="w-4 h-4 accent-brand-600 rounded cursor-pointer"
-                      checked={!!selectedWorker.active}
-                      onChange={() => toggleActive(selectedWorkerId)}
+                      checked={!!selectedWorker.userRestrict?.invoice}
+                      onChange={(e) => handleCheckboxChange(selectedWorkerId, 'invoice', e.target.checked)}
                     />
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${selectedWorker.active ? 'bg-green-500' : 'bg-gray-400'}`} />
-                      <span className="text-sm font-medium text-gray-900">
-                        {selectedWorker.active ? 'Активний' : 'Неактивний'}
-                      </span>
+                    <div className="flex items-center gap-2 flex-1">
+                      <FileText size={16} className="text-gray-600" />
+                      <span className="text-sm font-medium text-gray-900">Накладна</span>
                     </div>
                   </label>
+
+                  <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-brand-600 rounded cursor-pointer"
+                      checked={!!selectedWorker.userRestrict?.invoiceAll}
+                      onChange={(e) => handleCheckboxChange(selectedWorkerId, 'invoiceAll', e.target.checked)}
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <FileText size={16} className="text-gray-600" />
+                      <span className="text-sm font-medium text-gray-900">Всі накладні</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-brand-600 rounded cursor-pointer"
+                      checked={!!selectedWorker.userRestrict?.orderAll}
+                      onChange={(e) => handleCheckboxChange(selectedWorkerId, 'orderAll', e.target.checked)}
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <Package size={16} className="text-gray-600" />
+                      <span className="text-sm font-medium text-gray-900">Замовленя</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-brand-600 rounded cursor-pointer"
+                      checked={!!selectedWorker.userRestrict?.volumeAndParams}
+                      onChange={(e) => handleCheckboxChange(selectedWorkerId, 'volumeAndParams', e.target.checked)}
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <Boxes size={16} className="text-gray-600" />
+                      <span className="text-sm font-medium text-gray-900">Об'єми та Розміщення</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors col-span-2">
+                    <input
+                      type="checkbox"
+                      className="w-4 h-4 accent-brand-600 rounded cursor-pointer"
+                      checked={!!selectedWorker.userRestrict?.searchCode}
+                      onChange={(e) => handleCheckboxChange(selectedWorkerId, 'searchCode', e.target.checked)}
+                    />
+                    <div className="flex items-center gap-2 flex-1">
+                      <SearchCode size={16} className="text-gray-600" />
+                      <span className="text-sm font-medium text-gray-900">Пошук коду</span>
+                    </div>
+                  </label>
+
                 </div>
               </div>
             </div>
