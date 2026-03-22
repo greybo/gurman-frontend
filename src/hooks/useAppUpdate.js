@@ -38,16 +38,6 @@ export default function useAppUpdate() {
     const unsubCurrent = onValue(currentRef, (snap) => {
       const val = snap.val();
       setCurrent(val);
-      if (val) {
-        setForm({
-          versionCode: val.versionCode ?? '',
-          versionName: val.versionName ?? '',
-          apkUrl: val.apkUrl ?? '',
-          updateType: val.updateType ?? 'soft',
-          releaseNotes: val.releaseNotes ?? '',
-          updatedAt: val.updatedAt ?? 0,
-        });
-      }
       setLoading(false);
     });
 
@@ -114,14 +104,15 @@ export default function useAppUpdate() {
   };
 
   // Save current release (moves old current → previous)
+  // Returns true on success, false on error
   const saveRelease = async () => {
     if (!form.versionCode || !form.versionName) {
       setError('Заповніть versionCode та versionName');
-      return;
+      return false;
     }
     if (!form.apkUrl) {
       setError('Завантажте APK файл або вкажіть URL');
-      return;
+      return false;
     }
 
     setSaving(true);
@@ -145,10 +136,13 @@ export default function useAppUpdate() {
       };
 
       await set(ref(database, `${appUpdateDbPath}/current`), data);
+      setForm({ ...EMPTY_UPDATE });
       setSuccessMessage('Реліз збережено успішно');
+      return true;
     } catch (e) {
       console.error(e);
       setError(`Помилка збереження: ${e.message}`);
+      return false;
     } finally {
       setSaving(false);
     }

@@ -13,6 +13,9 @@ import {
   Trash2,
   CheckCircle,
   AlertCircle,
+  Plus,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
 
 export default function AppUpdateSettings({
@@ -32,6 +35,7 @@ export default function AppUpdateSettings({
   clearPrevious,
 }) {
   const fileInputRef = useRef(null);
+  const [showReleaseForm, setShowReleaseForm] = useState(!current);
   const [showPreviousEditor, setShowPreviousEditor] = useState(false);
   const [prevForm, setPrevForm] = useState({
     versionCode: '',
@@ -91,14 +95,27 @@ export default function AppUpdateSettings({
             Керуйте версіями мобільного додатку
           </p>
         </div>
-        <button
-          className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          onClick={saveRelease}
-          disabled={saving || uploading}
-        >
-          <Save size={16} />
-          {saving ? 'Збереження...' : 'Опублікувати реліз'}
-        </button>
+        {showReleaseForm ? (
+          <button
+            className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            onClick={async () => {
+              const ok = await saveRelease();
+              if (ok) setShowReleaseForm(false);
+            }}
+            disabled={saving || uploading}
+          >
+            <Save size={16} />
+            {saving ? 'Збереження...' : 'Опублікувати реліз'}
+          </button>
+        ) : (
+          <button
+            className="bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+            onClick={() => setShowReleaseForm(true)}
+          >
+            <Plus size={16} />
+            Додати реліз
+          </button>
+        )}
       </div>
 
       {/* Messages */}
@@ -118,11 +135,21 @@ export default function AppUpdateSettings({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Release Form */}
         <div>
+          {showReleaseForm && (
           <div className="bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Package size={16} className="text-brand-600" />
-              Новий реліз (current)
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                <Package size={16} className="text-brand-600" />
+                Новий реліз (current)
+              </h3>
+              <button
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                onClick={() => setShowReleaseForm(false)}
+                title="Згорнути"
+              >
+                <ChevronUp size={18} />
+              </button>
+            </div>
 
             <div className="space-y-4">
               {/* Version Code */}
@@ -271,6 +298,7 @@ export default function AppUpdateSettings({
               </div>
             </div>
           </div>
+          )}
         </div>
 
         {/* Right: Current + Previous info */}
