@@ -4,7 +4,7 @@ import { initializeApp, deleteApp } from 'firebase/app';
 import { getAuth, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
 import { database, firebaseConfig } from '../firebase';
 import { ref, set, push } from 'firebase/database';
-import { usersDbPath } from '../PathDb';
+import { usersDbPath, prefixPath } from '../PathDb';
 import { useAuth } from '../contexts/AuthContext';
 import { USER_API_URL } from '../config';
 
@@ -23,7 +23,7 @@ export default function useUsersManagement() {
 
   // Log admin action to Firebase
   const logAction = (action, targetEmail) => {
-    const logRef = ref(database, 'logging_db/adminWeb');
+    const logRef = ref(database, `${prefixPath}/logging_db/adminWeb`);
     const now = new Date();
     const pad = (n) => n.toString().padStart(2, '0');
     const timestamp = `${pad(now.getDate())}-${pad(now.getMonth() + 1)}-${now.getFullYear()} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
