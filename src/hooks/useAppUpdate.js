@@ -3,9 +3,21 @@ import { database, storage } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { appUpdateDbPath } from '../PathDb';
-import AppInfoParser from 'app-info-parser';
-
 console.log('[AppUpdate] Storage bucket:', storage?.app?.options?.storageBucket);
+
+/**
+ * Extract versionName and versionCode from APK filename.
+ * Supports: Gurman-alpha-5.4.0(168).apk, Gurman-release-5.5.0(170).apk, app-5.4.0(168).apk
+ * Pattern: any prefix, then versionName(versionCode).apk
+ */
+function parseApkFilename(filename) {
+  // Match: versionName(versionCode).apk at the end
+  const match = filename.match(/(\d+\.\d+(?:\.\d+)?)\((\d+)\)\.apk$/i);
+  if (match) {
+    return { versionName: match[1], versionCode: match[2] };
+  }
+  return null;
+}
 
 const EMPTY_UPDATE = {
   versionCode: '',
@@ -70,30 +82,6 @@ export default function useAppUpdate() {
     setSuccessMessage('');
   };
 
-  // Parse APK to extract versionCode and versionName
-  const parseApk = async (file) => {
-    try {
-      console.log('[AppUpdate] Parsing APK...');
-      const parser = new AppInfoParser(file);
-      const info = await parser.parse();
-      console.log('[AppUpdate] APK info:', info);
-
-      const versionCode = info.versionCode;
-      const versionName = info.versionName;
-
-      if (versionCode) {
-        setForm((prev) => ({
-          ...prev,
-          versionCode: String(versionCode),
-          ...(versionName ? { versionName } : {}),
-        }));
-        console.log('[AppUpdate] Extracted version:', versionName, '(' + versionCode + ')');
-      }
-    } catch (e) {
-      console.warn('[AppUpdate] APK parse failed, enter version manually:', e.message);
-    }
-  };
-
   // Upload APK to Firebase Storage
   const uploadApk = async (file) => {
     if (!file) return;
@@ -102,8 +90,16 @@ export default function useAppUpdate() {
     setUploadProgress(0);
     setError('');
 
-    // Extract version info from APK
-    await parseApk(file);
+    // Extract version from filename (e.g. Gurman-alpha-5.4.0(168).apk)
+    const parsed = parseApkFilename(file.name);
+    if (parsed) {
+      console.log('[AppUpdate] Extracted from filename:', parsed.versionName, '(' + parsed.versionCode + ')');
+      setForm((prev) => ({
+        ...prev,
+        versionCode: parsed.versionCode,
+        versionName: parsed.versionName,
+      }));
+    }
 
     try {
       const fileName = `apk-releases/${file.name}`;
