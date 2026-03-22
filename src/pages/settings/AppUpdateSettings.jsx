@@ -43,10 +43,10 @@ export default function AppUpdateSettings({
 
   const handleFileSelect = (e) => {
     const file = e.target.files[0];
-    if (file && file.name.endsWith('.apk')) {
+    if (file) {
       uploadApk(file);
     } else if (file) {
-      alert('Виберіть файл з розширенням .apk');
+      alert('Файл не вибрано');
     }
   };
 
@@ -229,7 +229,7 @@ export default function AppUpdateSettings({
                   <input
                     type="file"
                     ref={fileInputRef}
-                    accept=".apk"
+                    accept=".apk,application/vnd.android.package-archive,*/*"
                     onChange={handleFileSelect}
                     className="hidden"
                   />
