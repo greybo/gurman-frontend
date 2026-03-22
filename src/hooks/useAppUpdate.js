@@ -35,10 +35,11 @@ export default function useAppUpdate() {
     const currentRef = ref(database, `${appUpdateDbPath}/current`);
     const previousRef = ref(database, `${appUpdateDbPath}/previous`);
 
+    let isFirstLoad = true;
     const unsubCurrent = onValue(currentRef, (snap) => {
       const val = snap.val();
       setCurrent(val);
-      if (val) {
+      if (val && isFirstLoad) {
         setForm({
           versionCode: val.versionCode ?? '',
           versionName: val.versionName ?? '',
@@ -47,6 +48,7 @@ export default function useAppUpdate() {
           releaseNotes: val.releaseNotes ?? '',
           updatedAt: val.updatedAt ?? 0,
         });
+        isFirstLoad = false;
       }
       setLoading(false);
     });
@@ -145,6 +147,7 @@ export default function useAppUpdate() {
       };
 
       await set(ref(database, `${appUpdateDbPath}/current`), data);
+      setForm({ ...EMPTY_UPDATE });
       setSuccessMessage('Реліз збережено успішно');
     } catch (e) {
       console.error(e);
