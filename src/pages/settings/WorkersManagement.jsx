@@ -50,7 +50,7 @@ export default function WorkersManagement({
   return (
     <div>
       <h2 className="text-2xl font-bold text-gray-900 mb-2">Робітники</h2>
-      <p className="text-gray-600 mb-6">Керуйте робітниками та кіоск-режимом</p>
+      <p className="text-gray-600 mb-6">Керуйте робітниками та кіоск-режимом на мобільному пристрої</p>
 
       {error && (
         <div className="mb-6 bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-red-700 text-sm">
