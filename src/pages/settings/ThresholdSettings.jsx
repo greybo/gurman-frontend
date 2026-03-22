@@ -10,13 +10,8 @@ export default function ThresholdSettings({
   updateDate,
   error,
   saving,
-  usersTg,
   saveSettings,
-  handleUserCheckBox
 }) {
-  const userEntries = typeof usersTg === 'object' ? Object.entries(usersTg) : [];
-  const selectedCount = userEntries.filter(([, u]) => u.scanThreshold === true).length;
-
   return (
     <div>
       {/* Header row: title + save */}
@@ -77,41 +72,6 @@ export default function ThresholdSettings({
         )}
       </div>
 
-      {/* Telegram users — compact table */}
-      <div className="bg-white rounded-xl border border-gray-200">
-        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-          <h3 className="text-sm font-semibold text-gray-900">Отримувачі сповіщень</h3>
-          <span className="text-xs text-gray-400">
-            {selectedCount} з {userEntries.length} обрано
-          </span>
-        </div>
-
-        {userEntries.length > 0 ? (
-          <div className="divide-y divide-gray-100">
-            {userEntries.map(([key, user]) => (
-              <label
-                key={key}
-                className={`flex items-center gap-3 px-5 py-2.5 cursor-pointer transition-colors hover:bg-gray-50 ${
-                  user.scanThreshold === true ? 'bg-brand-50/50' : ''
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 accent-brand-600 rounded cursor-pointer flex-shrink-0"
-                  checked={user.scanThreshold === true}
-                  onChange={(e) => handleUserCheckBox(key, 'scanThreshold', e.target.checked)}
-                />
-                <span className="text-sm font-medium text-gray-900 w-32 truncate" title={user.name || 'N/A'}>
-                  {user.name || 'N/A'}
-                </span>
-                <span className="text-xs text-gray-400 font-mono">{key}</span>
-              </label>
-            ))}
-          </div>
-        ) : (
-          <p className="text-gray-500 text-sm text-center py-6">Користувачів не знайдено</p>
-        )}
-      </div>
     </div>
   );
 }

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { database } from '../firebase';
 import { ref, onValue, set, update } from 'firebase/database';
-import { thresholdDataDBPath, thresholdMessageDBPath, usersTgDbPath } from '../PathDb';
+import { thresholdDataDBPath, thresholdMessageDBPath } from '../PathDb';
 
 export default function useThresholdSettings() {
   // State
@@ -11,8 +11,6 @@ export default function useThresholdSettings() {
   const [updateDate, setUpdateDate] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
-  const [usersTg, setUsersTg] = useState([]);
-  // const [selectedUsers, setSelectedUsers] = useState({});
 
   // Load settings from Firebase
   useEffect(() => {
@@ -26,24 +24,6 @@ export default function useThresholdSettings() {
       }
     });
     return () => unsub();
-  }, []);
-
-  // Load Telegram users
-  useEffect(() => {
-    const usersRef = ref(database, `${usersTgDbPath}/`);
-    onValue(usersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        setUsersTg(data);
-        // console.info('Користувачі:', Object.entries(data).map(([key, user]) => '#' + key + ', name: ' + (user.name || 'n/a')).join(', '));
-      } else {
-        setUsersTg({});
-        setError('Користувачів не знайдено');
-      }
-    }, (err) => {
-      console.error('Помилка завантаження:', err);
-      setError('Помилка завантаження даних');
-    }, { onlyOnce: true });
   }, []);
 
   // Format current date/time
@@ -81,24 +61,7 @@ export default function useThresholdSettings() {
     }
   };
 
-  // Handle checkbox for Telegram users
-  const handleUserCheckBox = (chatId, field, checked) => {
-    setUsersTg(prevUsers => ({
-      ...prevUsers,
-      [chatId]: {
-        ...prevUsers[chatId],
-        [field]: checked
-      }
-    }));
-
-    update(ref(database, `${usersTgDbPath}/${chatId}`), {
-      [field]: checked,
-      //   chatId: chatId
-    });
-  };
-
   return {
-    // State
     threshold,
     setThreshold,
     message,
@@ -106,10 +69,6 @@ export default function useThresholdSettings() {
     updateDate,
     error,
     saving,
-    usersTg,
-    // selectedUsers,
-    // Methods
     saveSettings,
-    handleUserCheckBox
   };
 }
