@@ -4,6 +4,8 @@ import { ref, onValue, set } from 'firebase/database';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { appUpdateDbPath } from '../PathDb';
 
+console.log('[AppUpdate] Storage bucket:', storage?.app?.options?.storageBucket);
+
 const EMPTY_UPDATE = {
   versionCode: '',
   versionName: '',
@@ -76,29 +78,36 @@ export default function useAppUpdate() {
     try {
       const fileName = `apk-releases/${file.name}`;
       const fileRef = storageRef(storage, fileName);
-      const uploadTask = uploadBytesResumable(fileRef, file);
+      const metadata = { contentType: 'application/vnd.android.package-archive' };
+      const uploadTask = uploadBytesResumable(fileRef, file, metadata);
+
+      console.log('[AppUpdate] Starting upload:', file.name, 'size:', file.size);
 
       await new Promise((resolve, reject) => {
         uploadTask.on(
           'state_changed',
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+            console.log('[AppUpdate] Progress:', Math.round(progress) + '%');
             setUploadProgress(Math.round(progress));
           },
           (err) => {
-            setError(`Помилка завантаження: ${err.message}`);
+            console.error('[AppUpdate] Upload error:', err.code, err.message);
+            setError(`Помилка завантаження: ${err.code} — ${err.message}`);
             reject(err);
           },
           async () => {
+            console.log('[AppUpdate] Upload complete, getting URL...');
             const url = await getDownloadURL(uploadTask.snapshot.ref);
+            console.log('[AppUpdate] Download URL:', url);
             updateFormField('apkUrl', url);
             resolve();
           }
         );
       });
     } catch (e) {
-      console.error(e);
-      setError(`Помилка завантаження APK: ${e.message}`);
+      console.error('[AppUpdate] Error:', e);
+      setError(`Помилка завантаження APK: ${e.code || ''} ${e.message}`);
     } finally {
       setUploading(false);
     }
