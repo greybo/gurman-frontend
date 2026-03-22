@@ -1,6 +1,6 @@
 // src/pages/SettingsPage.jsx
 import React, { useState } from 'react';
-import { SlidersHorizontal, Users, Send, Settings, MessageSquare, HardHat } from 'lucide-react';
+import { SlidersHorizontal, ShieldCheck, Users, Send, Settings, MessageSquare, HardHat } from 'lucide-react';
 import ThresholdSettings from './settings/ThresholdSettings';
 import UsersManagement from './settings/UsersManagement';
 import TelegramUsersSettings from './settings/TelegramUsersSettings';
@@ -14,8 +14,8 @@ import useTelegramChats from '../hooks/useTelegramChats';
 import useWorkersManagement from '../hooks/useWorkersManagement';
 
 const tabs = [
+  { id: 'users', label: 'Admin', icon: ShieldCheck },
   { id: 'scan-threshold', label: 'Поріг сканування', icon: SlidersHorizontal },
-  { id: 'users', label: 'Користувачі', icon: Users },
   { id: 'telegram-users', label: 'Telegram', icon: Send },
   { id: 'telegram-chats', label: 'Чати', icon: MessageSquare },
   { id: 'workers', label: 'Робітники', icon: HardHat },
@@ -23,7 +23,7 @@ const tabs = [
 ];
 
 export default function SettingsPage() {
-  const [activeItem, setActiveItem] = useState('scan-threshold');
+  const [activeItem, setActiveItem] = useState('users');
 
   const thresholdSettings = useThresholdSettings();
   const usersManagement = useUsersManagement();
