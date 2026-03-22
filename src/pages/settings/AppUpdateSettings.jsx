@@ -28,10 +28,14 @@ export default function AppUpdateSettings({
   uploading,
   uploadApk,
   saveRelease,
+  saveCurrent,
+  clearCurrent,
   savePrevious,
   clearPrevious,
 }) {
   const fileInputRef = useRef(null);
+  const [showCurrentEditor, setShowCurrentEditor] = useState(false);
+  const [currentForm, setCurrentForm] = useState({});
   const [showPreviousEditor, setShowPreviousEditor] = useState(false);
   const [prevForm, setPrevForm] = useState({
     versionCode: '',
@@ -278,10 +282,38 @@ export default function AppUpdateSettings({
           {/* Current Version Card */}
           {current && (
             <div className="bg-white rounded-xl border border-gray-200 p-5">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <Package size={16} className="text-green-600" />
-                Поточна версія (current)
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                  <Package size={16} className="text-green-600" />
+                  Поточна версія (current)
+                </h3>
+                <div className="flex gap-2">
+                  <button
+                    className="text-xs text-brand-600 hover:text-brand-700 font-medium"
+                    onClick={() => {
+                      setCurrentForm({
+                        versionCode: current.versionCode ?? '',
+                        versionName: current.versionName ?? '',
+                        apkUrl: current.apkUrl ?? '',
+                        updateType: current.updateType ?? 'soft',
+                        releaseNotes: current.releaseNotes ?? '',
+                        updatedAt: current.updatedAt ?? 0,
+                      });
+                      setShowCurrentEditor(true);
+                    }}
+                  >
+                    Редагувати
+                  </button>
+                  <button
+                    className="text-xs text-red-500 hover:text-red-700 font-medium"
+                    onClick={() => {
+                      if (window.confirm('Видалити поточну версію?')) clearCurrent();
+                    }}
+                  >
+                    Видалити
+                  </button>
+                </div>
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Version</span>
@@ -314,6 +346,86 @@ export default function AppUpdateSettings({
                   </div>
                 )}
               </div>
+
+              {/* Current Editor */}
+              {showCurrentEditor && (
+                <div className="mt-4 pt-4 border-t border-gray-200 space-y-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">Version Code</label>
+                      <input
+                        type="number"
+                        className={inputClass}
+                        value={currentForm.versionCode}
+                        onChange={(e) => setCurrentForm({ ...currentForm, versionCode: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-600 mb-1 block">Version Name</label>
+                      <input
+                        type="text"
+                        className={inputClass}
+                        value={currentForm.versionName}
+                        onChange={(e) => setCurrentForm({ ...currentForm, versionName: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Тип оновлення</label>
+                    <div className="flex gap-2">
+                      {['soft', 'force'].map((type) => (
+                        <button
+                          key={type}
+                          className={`flex-1 py-1.5 rounded-lg text-xs font-medium border-2 transition-all ${
+                            currentForm.updateType === type
+                              ? type === 'force' ? 'border-red-500 bg-red-50 text-red-700' : 'border-brand-500 bg-brand-50 text-brand-700'
+                              : 'border-gray-200 text-gray-500'
+                          }`}
+                          onClick={() => setCurrentForm({ ...currentForm, updateType: type })}
+                        >
+                          {type}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">APK URL</label>
+                    <input
+                      type="text"
+                      className={inputClass}
+                      value={currentForm.apkUrl}
+                      onChange={(e) => setCurrentForm({ ...currentForm, apkUrl: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-medium text-gray-600 mb-1 block">Release Notes</label>
+                    <textarea
+                      className={`${inputClass} resize-none`}
+                      rows={2}
+                      value={currentForm.releaseNotes}
+                      onChange={(e) => setCurrentForm({ ...currentForm, releaseNotes: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      className="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                      onClick={() => {
+                        saveCurrent(currentForm);
+                        setShowCurrentEditor(false);
+                      }}
+                      disabled={saving}
+                    >
+                      Зберегти
+                    </button>
+                    <button
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-lg text-sm"
+                      onClick={() => setShowCurrentEditor(false)}
+                    >
+                      Скасувати
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

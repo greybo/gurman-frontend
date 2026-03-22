@@ -182,6 +182,45 @@ export default function useAppUpdate() {
     }
   };
 
+  // Save current (edit in place, no move to previous)
+  const saveCurrent = async (currentData) => {
+    setSaving(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const data = {
+        versionCode: Number(currentData.versionCode),
+        versionName: currentData.versionName.trim(),
+        apkUrl: currentData.apkUrl.trim(),
+        updateType: currentData.updateType || 'soft',
+        releaseNotes: currentData.releaseNotes?.trim() || '',
+        updatedAt: currentData.updatedAt || Date.now(),
+      };
+      await set(ref(database, `${appUpdateDbPath}/current`), data);
+      setSuccessMessage('Поточну версію оновлено');
+    } catch (e) {
+      console.error(e);
+      setError(`Помилка збереження: ${e.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Clear current
+  const clearCurrent = async () => {
+    setSaving(true);
+    try {
+      await set(ref(database, `${appUpdateDbPath}/current`), null);
+      setForm({ ...EMPTY_UPDATE });
+      setSuccessMessage('Поточну версію видалено');
+    } catch (e) {
+      setError(`Помилка: ${e.message}`);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   // Clear previous
   const clearPrevious = async () => {
     setSaving(true);
@@ -208,6 +247,8 @@ export default function useAppUpdate() {
     uploading,
     uploadApk,
     saveRelease,
+    saveCurrent,
+    clearCurrent,
     savePrevious,
     clearPrevious,
   };
