@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { database } from '../firebase';
 import { ref, onValue, update, remove, push } from 'firebase/database';
-import { workersDbPath, settingsAppDbPath, usersDbPath, usersTgDbPath } from '../PathDb';
+import { workersDbPath, settingsAppDbPath, usersTgDbPath } from '../PathDb';
 
 // Helper functions to convert between hex color and ARGB integer
 const hexToARGB = (hex) => {
@@ -35,8 +35,6 @@ export default function useWorkersManagement() {
   const [kioskSettings, setKioskSettings] = useState({});
   const [kioskKey, setKioskKey] = useState(null);
 
-  // User emails for kiosk dropdown (from user_db_V2)
-  const [userEmails, setUserEmails] = useState([]);
 
   // Adding new worker
   const [isAdding, setIsAdding] = useState(false);
@@ -90,22 +88,6 @@ export default function useWorkersManagement() {
     return () => unsubSettings();
   }, []);
 
-  // Завантаження email користувачів для dropdown кіоска
-  useEffect(() => {
-    const usersRef = ref(database, usersDbPath);
-
-    const unsubUsers = onValue(usersRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        const emails = Object.values(data)
-          .map(u => u.email)
-          .filter(Boolean);
-        setUserEmails(emails);
-      }
-    }, () => {}, { onlyOnce: true });
-
-    return () => unsubUsers();
-  }, []);
 
   // Завантаження Telegram користувачів
   useEffect(() => {
@@ -294,17 +276,6 @@ export default function useWorkersManagement() {
     }
   };
 
-  const setKioskEmail = async (email) => {
-    if (!kioskKey) return;
-    try {
-      const settingsRef = ref(database, `${settingsAppDbPath}/${kioskKey}`);
-      await update(settingsRef, { kioskEmail: email });
-    } catch (err) {
-      console.error('Помилка зміни email кіоска:', err);
-      alert('Помилка зміни email');
-    }
-  };
-
   // Filter Telegram users by search term
   const filteredUsersTg = Object.entries(usersTg).filter(([chatId, user]) => {
     const searchLower = searchTerm?.toLowerCase() || '';
@@ -314,7 +285,6 @@ export default function useWorkersManagement() {
   return {
     workers,
     kioskSettings,
-    userEmails,
     loading,
     error,
     selectedWorkerId,
@@ -331,7 +301,6 @@ export default function useWorkersManagement() {
     deleteWorker,
     toggleActive,
     toggleKioskMode,
-    setKioskEmail,
     // Telegram dropdown
     searchTerm,
     setSearchTerm,

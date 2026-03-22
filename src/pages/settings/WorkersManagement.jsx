@@ -2,14 +2,13 @@
 import React from 'react';
 import {
   Users, Lock, Save, RefreshCw, Trash2, Plus, X, Hash,
-  ChevronDown, ToggleLeft, ToggleRight, Mail, Palette,
+  ChevronDown, ToggleLeft, ToggleRight, Palette,
   FileText, Package, Boxes, SearchCode
 } from 'lucide-react';
 
 export default function WorkersManagement({
   workers,
   kioskSettings,
-  userEmails,
   loading,
   error,
   selectedWorkerId,
@@ -26,7 +25,6 @@ export default function WorkersManagement({
   deleteWorker,
   toggleActive,
   toggleKioskMode,
-  setKioskEmail,
   // Telegram dropdown
   searchTerm,
   setSearchTerm,
@@ -79,28 +77,6 @@ export default function WorkersManagement({
           </button>
         </div>
 
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <label className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-            <Mail size={14} />
-            Email для кіоск-режиму
-          </label>
-          <p className="text-xs text-gray-500 mb-2">
-            Оберіть акаунт, від імені якого працюватиме планшет.
-          </p>
-          <div className="relative">
-            <select
-              value={kioskSettings.kioskEmail || ''}
-              onChange={(e) => setKioskEmail(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-white focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition-colors appearance-none pr-10"
-            >
-              <option value="">Оберіть акаунт</option>
-              {userEmails.map(email => (
-                <option key={email} value={email}>{email}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          </div>
-        </div>
       </div>
 
       {/* Список робітників + редагування */}
