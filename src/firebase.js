@@ -2,6 +2,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getDatabase, connectDatabaseEmulator } from 'firebase/database';
+import { getStorage } from 'firebase/storage';
 
 // Ваша конфігурація Firebase
 // Отримайте з Firebase Console -> Project Settings -> General -> Your apps
@@ -23,6 +24,9 @@ export const auth = getAuth(app);
 
 // Ініціалізація Realtime Database
 export const database = getDatabase(app);
+
+// Ініціалізація Storage
+export const storage = getStorage(app);
 
 // Підключення до емулятора для локальної розробки
 if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATOR === 'true') {

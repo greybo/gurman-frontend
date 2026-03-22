@@ -9,6 +9,7 @@ export const thresholdMessageDBPath = `${prefixPath}/scan_threshold_message_db`;
 export const tgChatsDbPath = `${prefixPath}/tg_chat_db`;
 export const workersDbPath = `${prefixPath}/workers_db`;
 export const settingsAppDbPath = `${prefixPath}/settings_app_db`;
+export const appUpdateDbPath = `${prefixPath}/appUpdate`;
 
 
 export function thresholdDataDBPath() {

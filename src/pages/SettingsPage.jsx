@@ -1,17 +1,19 @@
 // src/pages/SettingsPage.jsx
 import React, { useState } from 'react';
-import { SlidersHorizontal, ShieldCheck, Users, Send, Settings, MessageSquare, HardHat } from 'lucide-react';
+import { SlidersHorizontal, ShieldCheck, Users, Send, Settings, MessageSquare, HardHat, Smartphone } from 'lucide-react';
 import ThresholdSettings from './settings/ThresholdSettings';
 import UsersManagement from './settings/UsersManagement';
 import TelegramUsersSettings from './settings/TelegramUsersSettings';
 import TelegramChatsSettings from './settings/TelegramChatsSettings';
 import GeneralSettings from './settings/GeneralSettings';
 import WorkersManagement from './settings/WorkersManagement';
+import AppUpdateSettings from './settings/AppUpdateSettings';
 import useThresholdSettings from '../hooks/useThresholdSettings';
 import useUsersManagement from '../hooks/useUsersManagement';
 import useTelegramUsers from '../hooks/useTelegramUsers';
 import useTelegramChats from '../hooks/useTelegramChats';
 import useWorkersManagement from '../hooks/useWorkersManagement';
+import useAppUpdate from '../hooks/useAppUpdate';
 
 const tabs = [
   { id: 'users', label: 'Admin', icon: ShieldCheck },
@@ -19,6 +21,7 @@ const tabs = [
   { id: 'telegram-users', label: 'Telegram', icon: Send },
   { id: 'telegram-chats', label: 'Чати', icon: MessageSquare },
   { id: 'workers', label: 'Робітники', icon: HardHat },
+  { id: 'app-update', label: 'Update App', icon: Smartphone },
   { id: 'general', label: 'Загальні', icon: Settings },
 ];
 
@@ -30,6 +33,7 @@ export default function SettingsPage() {
   const telegramUsers = useTelegramUsers();
   const telegramChats = useTelegramChats();
   const workersManagement = useWorkersManagement();
+  const appUpdate = useAppUpdate();
 
   return (
     <div>
@@ -82,6 +86,9 @@ export default function SettingsPage() {
         )}
         {activeItem === 'workers' && (
           <WorkersManagement {...workersManagement} />
+        )}
+        {activeItem === 'app-update' && (
+          <AppUpdateSettings {...appUpdate} />
         )}
         {activeItem === 'general' && (
           <GeneralSettings />
