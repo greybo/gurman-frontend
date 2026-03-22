@@ -3,6 +3,7 @@ import { database, storage } from '../firebase';
 import { ref, onValue, set } from 'firebase/database';
 import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { appUpdateDbPath } from '../PathDb';
+import AppInfoParser from 'app-info-parser';
 
 console.log('[AppUpdate] Storage bucket:', storage?.app?.options?.storageBucket);
 
@@ -69,6 +70,30 @@ export default function useAppUpdate() {
     setSuccessMessage('');
   };
 
+  // Parse APK to extract versionCode and versionName
+  const parseApk = async (file) => {
+    try {
+      console.log('[AppUpdate] Parsing APK...');
+      const parser = new AppInfoParser(file);
+      const info = await parser.parse();
+      console.log('[AppUpdate] APK info:', info);
+
+      const versionCode = info.versionCode;
+      const versionName = info.versionName;
+
+      if (versionCode) {
+        setForm((prev) => ({
+          ...prev,
+          versionCode: String(versionCode),
+          ...(versionName ? { versionName } : {}),
+        }));
+        console.log('[AppUpdate] Extracted version:', versionName, '(' + versionCode + ')');
+      }
+    } catch (e) {
+      console.warn('[AppUpdate] APK parse failed, enter version manually:', e.message);
+    }
+  };
+
   // Upload APK to Firebase Storage
   const uploadApk = async (file) => {
     if (!file) return;
@@ -76,6 +101,9 @@ export default function useAppUpdate() {
     setUploading(true);
     setUploadProgress(0);
     setError('');
+
+    // Extract version info from APK
+    await parseApk(file);
 
     try {
       const fileName = `apk-releases/${file.name}`;
