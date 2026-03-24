@@ -2,8 +2,8 @@
 import React, { useState } from 'react';
 import { useProcessingTimeData } from '../hooks/useProcessingTimeData';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
 import { RefreshCw } from 'lucide-react';
 
@@ -34,6 +34,7 @@ export default function ProcessingTimePage() {
     loading,
     error,
     chartData,
+    managerChartData,
     selectedSajt,
     setSelectedSajt,
     selectedManager,
@@ -210,6 +211,69 @@ export default function ProcessingTimePage() {
           </ResponsiveContainer>
         )}
       </div>
+
+      {/* Аналітика по менеджерах */}
+      {!loading && managerChartData.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 p-6 mt-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            Час обробки по менеджерах ({selectedYear})
+          </h3>
+
+          <ResponsiveContainer width="100%" height={Math.max(300, managerChartData.length * 60)}>
+            <BarChart
+              data={managerChartData}
+              layout="vertical"
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
+              <XAxis
+                type="number"
+                stroke="#6b7280"
+                fontSize={12}
+                label={{ value: 'Години', position: 'insideBottom', offset: -2, style: { fill: '#6b7280' } }}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                stroke="#6b7280"
+                fontSize={12}
+                width={140}
+                tick={({ x, y, payload }) => {
+                  const item = managerChartData.find(d => d.name === payload.value);
+                  return (
+                    <g transform={`translate(${x},${y})`}>
+                      <text x={-5} y={-6} textAnchor="end" fill="#374151" fontSize={12} fontWeight={500}>
+                        {payload.value}
+                      </text>
+                      <text x={-5} y={10} textAnchor="end" fill="#9ca3af" fontSize={10}>
+                        {item?.count} замовл.
+                      </text>
+                    </g>
+                  );
+                }}
+              />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload || !payload.length) return null;
+                  const data = payload[0]?.payload;
+                  return (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+                      <p className="font-medium text-gray-900 mb-1">{data?.name}</p>
+                      <p className="text-xs text-gray-500 mb-2">Замовлень: {data?.count}</p>
+                      <p className="text-sm" style={{ color: '#10b981' }}>Найшвидший: {data?.min} год</p>
+                      <p className="text-sm" style={{ color: '#3b82f6' }}>Середній: {data?.avg} год</p>
+                      <p className="text-sm" style={{ color: '#ef4444' }}>Найповільніший: {data?.max} год</p>
+                    </div>
+                  );
+                }}
+              />
+              <Bar dataKey="min" name="Найшвидший" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
+              <Bar dataKey="avg" name="Середній" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={14} />
+              <Bar dataKey="max" name="Найповільніший" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={14} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }

@@ -194,10 +194,54 @@ export function useProcessingTimeData() {
     });
   }, [rawOrders, selectedSajt, selectedManager, selectedShipping, selectedYear]);
 
+  // Manager breakdown chart data
+  const managerChartData = useMemo(() => {
+    const filtered = rawOrders.filter(order => {
+      if (selectedSajt !== 'all' && order.sajt !== Number(selectedSajt)) return false;
+      if (selectedShipping !== 'all' && order.shippingMethod !== Number(selectedShipping)) return false;
+      const orderDate = parseTimestamp(order.orderTime);
+      if (!orderDate || orderDate.getFullYear() !== selectedYear) return false;
+      return true;
+    });
+
+    const managerMap = {};
+
+    filtered.forEach(order => {
+      const hours = calculateProcessingHours(order.statusHistory);
+      if (hours === null) return;
+
+      const mId = order.managerId;
+      if (mId == null) return;
+
+      if (!managerMap[mId]) {
+        managerMap[mId] = [];
+      }
+      managerMap[mId].push(hours);
+    });
+
+    return Object.entries(managerMap)
+      .map(([mId, values]) => {
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
+
+        return {
+          managerId: Number(mId),
+          name: metaManagers[mId] || `Менеджер ${mId}`,
+          min: Math.round(min * 10) / 10,
+          max: Math.round(max * 10) / 10,
+          avg: Math.round(avg * 10) / 10,
+          count: values.length,
+        };
+      })
+      .sort((a, b) => b.avg - a.avg);
+  }, [rawOrders, selectedSajt, selectedShipping, selectedYear, metaManagers]);
+
   return {
     loading,
     error,
     chartData,
+    managerChartData,
     selectedSajt,
     setSelectedSajt,
     selectedManager,
