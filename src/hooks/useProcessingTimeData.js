@@ -3,9 +3,16 @@ import { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { firestore } from '../firebase';
 
-function parseTimestamp(str) {
-  if (!str) return null;
-  return new Date(str.replace(' ', 'T'));
+function parseTimestamp(val) {
+  if (!val) return null;
+  // Firestore Timestamp object
+  if (val.toDate && typeof val.toDate === 'function') return val.toDate();
+  // String "YYYY-MM-DD HH:MM:SS"
+  if (typeof val === 'string') return new Date(val.replace(' ', 'T'));
+  // Already a Date or number
+  if (val instanceof Date) return val;
+  if (typeof val === 'number') return new Date(val);
+  return null;
 }
 
 function getISOWeek(date) {
