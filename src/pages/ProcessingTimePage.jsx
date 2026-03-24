@@ -38,10 +38,13 @@ export default function ProcessingTimePage() {
     setSelectedSajt,
     selectedManager,
     setSelectedManager,
+    selectedShipping,
+    setSelectedShipping,
     selectedYear,
     setSelectedYear,
     availableSajts,
     availableManagers,
+    availableShippings,
     availableYears,
   } = useProcessingTimeData();
 
@@ -105,6 +108,20 @@ export default function ProcessingTimePage() {
               <option value="all">Всі менеджери</option>
               {availableManagers.map(m => (
                 <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Доставка</label>
+            <select
+              value={selectedShipping}
+              onChange={(e) => setSelectedShipping(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 text-sm"
+            >
+              <option value="all">Всі методи</option>
+              {availableShippings.map(s => (
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>

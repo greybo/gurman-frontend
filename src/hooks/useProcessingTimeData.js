@@ -47,6 +47,7 @@ export function useProcessingTimeData() {
   const [rawOrders, setRawOrders] = useState([]);
   const [selectedSajt, setSelectedSajt] = useState('all');
   const [selectedManager, setSelectedManager] = useState('all');
+  const [selectedShipping, setSelectedShipping] = useState('all');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   // Fetch all documents
@@ -68,9 +69,10 @@ export function useProcessingTimeData() {
   }, []);
 
   // Extract available filter values
-  const { availableSajts, availableManagers, availableYears } = useMemo(() => {
-    const sajts = [...new Set(rawOrders.map(o => o.sajt).filter(Boolean))].sort((a, b) => a - b);
-    const managers = [...new Set(rawOrders.map(o => o.managerId).filter(Boolean))].sort((a, b) => a - b);
+  const { availableSajts, availableManagers, availableShippings, availableYears } = useMemo(() => {
+    const sajts = [...new Set(rawOrders.map(o => o.sajt).filter(v => v != null))].sort((a, b) => a - b);
+    const managers = [...new Set(rawOrders.map(o => o.managerId).filter(v => v != null))].sort((a, b) => a - b);
+    const shippings = [...new Set(rawOrders.map(o => o.shippingMethod).filter(v => v != null))].sort((a, b) => a - b);
     const years = [...new Set(
       rawOrders
         .map(o => {
@@ -80,7 +82,7 @@ export function useProcessingTimeData() {
         .filter(Boolean)
     )].sort((a, b) => b - a);
 
-    return { availableSajts: sajts, availableManagers: managers, availableYears: years };
+    return { availableSajts: sajts, availableManagers: managers, availableShippings: shippings, availableYears: years };
   }, [rawOrders]);
 
   // Set default year when data loads
@@ -97,6 +99,8 @@ export function useProcessingTimeData() {
       if (selectedSajt !== 'all' && order.sajt !== Number(selectedSajt)) return false;
       // Filter by manager
       if (selectedManager !== 'all' && order.managerId !== Number(selectedManager)) return false;
+      // Filter by shipping method
+      if (selectedShipping !== 'all' && order.shippingMethod !== Number(selectedShipping)) return false;
       // Filter by year
       const orderDate = parseTimestamp(order.orderTime);
       if (!orderDate || orderDate.getFullYear() !== selectedYear) return false;
@@ -150,7 +154,7 @@ export function useProcessingTimeData() {
         count: values.length,
       };
     });
-  }, [rawOrders, selectedSajt, selectedManager, selectedYear]);
+  }, [rawOrders, selectedSajt, selectedManager, selectedShipping, selectedYear]);
 
   return {
     loading,
@@ -160,10 +164,13 @@ export function useProcessingTimeData() {
     setSelectedSajt,
     selectedManager,
     setSelectedManager,
+    selectedShipping,
+    setSelectedShipping,
     selectedYear,
     setSelectedYear,
     availableSajts,
     availableManagers,
+    availableShippings,
     availableYears,
   };
 }
