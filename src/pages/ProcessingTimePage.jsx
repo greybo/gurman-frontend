@@ -1,11 +1,33 @@
 // src/pages/ProcessingTimePage.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useProcessingTimeData } from '../hooks/useProcessingTimeData';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer
+  Tooltip, ResponsiveContainer
 } from 'recharts';
 import { RefreshCw } from 'lucide-react';
+
+const LINES = [
+  { key: 'min', name: 'Найшвидший', color: '#10b981' },
+  { key: 'avg', name: 'Середній', color: '#3b82f6' },
+  { key: 'max', name: 'Найповільніший', color: '#ef4444' },
+];
+
+function CustomTooltip({ active, payload, label }) {
+  if (!active || !payload || !payload.length) return null;
+  const data = payload[0]?.payload;
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-3 shadow-lg">
+      <p className="font-medium text-gray-900 mb-1">{data?.week} ({data?.weekStart})</p>
+      <p className="text-xs text-gray-500 mb-2">Замовлень: {data?.count}</p>
+      {payload.map((entry, i) => (
+        <p key={i} className="text-sm" style={{ color: entry.color }}>
+          {entry.name}: {entry.value} год
+        </p>
+      ))}
+    </div>
+  );
+}
 
 export default function ProcessingTimePage() {
   const {
@@ -22,6 +44,12 @@ export default function ProcessingTimePage() {
     availableManagers,
     availableYears,
   } = useProcessingTimeData();
+
+  const [visibleLines, setVisibleLines] = useState({ min: true, avg: true, max: true });
+
+  const toggleLine = (key) => {
+    setVisibleLines(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   return (
     <div>
@@ -40,7 +68,6 @@ export default function ProcessingTimePage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Фільтри</h3>
         <div className="flex flex-wrap gap-4">
-          {/* Рік */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Рік</label>
             <select
@@ -54,7 +81,6 @@ export default function ProcessingTimePage() {
             </select>
           </div>
 
-          {/* Сайт */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Сайт</label>
             <select
@@ -69,7 +95,6 @@ export default function ProcessingTimePage() {
             </select>
           </div>
 
-          {/* Менеджер */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Менеджер</label>
             <select
@@ -88,9 +113,29 @@ export default function ProcessingTimePage() {
 
       {/* Графік */}
       <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Час обробки по тижнях ({selectedYear})
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Час обробки по тижнях ({selectedYear})
+          </h3>
+
+          {/* Чекбокси ліній */}
+          <div className="flex gap-4">
+            {LINES.map(line => (
+              <label key={line.key} className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={visibleLines[line.key]}
+                  onChange={() => toggleLine(line.key)}
+                  className="w-4 h-4 rounded cursor-pointer"
+                  style={{ accentColor: line.color }}
+                />
+                <span className="text-sm font-medium" style={{ color: line.color }}>
+                  {line.name}
+                </span>
+              </label>
+            ))}
+          </div>
+        </div>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-16 gap-2">
@@ -103,47 +148,47 @@ export default function ProcessingTimePage() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-              <XAxis dataKey="week" stroke="#6b7280" fontSize={12} />
+              <XAxis
+                dataKey="week"
+                stroke="#6b7280"
+                fontSize={11}
+                tick={({ x, y, payload }) => {
+                  const item = chartData.find(d => d.week === payload.value);
+                  return (
+                    <g transform={`translate(${x},${y})`}>
+                      <text x={0} y={0} dy={12} textAnchor="middle" fill="#6b7280" fontSize={11}>
+                        {payload.value}
+                      </text>
+                      <text x={0} y={0} dy={26} textAnchor="middle" fill="#9ca3af" fontSize={10}>
+                        {item?.weekStart || ''}
+                      </text>
+                    </g>
+                  );
+                }}
+                height={45}
+              />
               <YAxis
                 stroke="#6b7280"
                 fontSize={12}
                 label={{ value: 'Години', angle: -90, position: 'insideLeft', style: { fill: '#6b7280' } }}
               />
-              <Tooltip
-                contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                formatter={(value, name) => [`${value} год`, name]}
-                labelFormatter={(label) => label}
-              />
-              <Legend />
-              <Line
-                type="monotone"
-                dataKey="min"
-                name="Найшвидший"
-                stroke="#10b981"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="avg"
-                name="Середній"
-                stroke="#3b82f6"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6 }}
-              />
-              <Line
-                type="monotone"
-                dataKey="max"
-                name="Найповільніший"
-                stroke="#ef4444"
-                strokeWidth={3}
-                dot={false}
-                activeDot={{ r: 6 }}
-              />
+              <Tooltip content={<CustomTooltip />} />
+              {LINES.map(line => (
+                visibleLines[line.key] && (
+                  <Line
+                    key={line.key}
+                    type="monotone"
+                    dataKey={line.key}
+                    name={line.name}
+                    stroke={line.color}
+                    strokeWidth={3}
+                    dot={false}
+                    activeDot={{ r: 6 }}
+                  />
+                )
+              ))}
             </LineChart>
           </ResponsiveContainer>
         )}

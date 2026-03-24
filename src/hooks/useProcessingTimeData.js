@@ -114,22 +114,36 @@ export function useProcessingTimeData() {
       const week = getISOWeek(orderDate);
 
       if (!weekMap[week]) {
-        weekMap[week] = [];
+        weekMap[week] = { values: [], year: orderDate.getFullYear() };
       }
-      weekMap[week].push(hours);
+      weekMap[week].values.push(hours);
     });
+
+    // Get Monday date for a given ISO week and year
+    const getWeekStartDate = (week, year) => {
+      const jan4 = new Date(year, 0, 4);
+      const dayOfWeek = jan4.getDay() || 7;
+      const monday = new Date(jan4);
+      monday.setDate(jan4.getDate() - dayOfWeek + 1 + (week - 1) * 7);
+      const dd = String(monday.getDate()).padStart(2, '0');
+      const mm = String(monday.getMonth() + 1).padStart(2, '0');
+      return `${dd}.${mm}`;
+    };
 
     // Build chart data sorted by week
     const weeks = Object.keys(weekMap).map(Number).sort((a, b) => a - b);
 
     return weeks.map(week => {
-      const values = weekMap[week];
+      const { values, year } = weekMap[week];
       const min = Math.min(...values);
       const max = Math.max(...values);
       const avg = values.reduce((sum, v) => sum + v, 0) / values.length;
+      const weekStart = getWeekStartDate(week, year);
 
       return {
         week: `Тиж ${week}`,
+        weekLabel: `Тиж ${week}\n${weekStart}`,
+        weekStart,
         min: Math.round(min * 10) / 10,
         max: Math.round(max * 10) / 10,
         avg: Math.round(avg * 10) / 10,
