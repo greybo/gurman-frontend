@@ -215,9 +215,27 @@ export default function ProcessingTimePage() {
       {/* Аналітика по менеджерах */}
       {!loading && managerChartData.length > 0 && (
         <div className="bg-white rounded-xl border border-gray-200 p-6 mt-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Час обробки по менеджерах ({selectedYear})
-          </h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Час обробки по менеджерах ({selectedYear})
+            </h3>
+            <div className="flex gap-4">
+              {LINES.map(line => (
+                <label key={line.key} className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={visibleLines[line.key]}
+                    onChange={() => toggleLine(line.key)}
+                    className="w-4 h-4 rounded cursor-pointer"
+                    style={{ accentColor: line.color }}
+                  />
+                  <span className="text-sm font-medium" style={{ color: line.color }}>
+                    {line.name}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
 
           <ResponsiveContainer width="100%" height={Math.max(300, managerChartData.length * 60)}>
             <BarChart
@@ -267,9 +285,9 @@ export default function ProcessingTimePage() {
                   );
                 }}
               />
-              <Bar dataKey="min" name="Найшвидший" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />
-              <Bar dataKey="avg" name="Середній" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={14} />
-              <Bar dataKey="max" name="Найповільніший" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={14} />
+              {visibleLines.min && <Bar dataKey="min" name="Найшвидший" fill="#10b981" radius={[0, 4, 4, 0]} barSize={14} />}
+              {visibleLines.avg && <Bar dataKey="avg" name="Середній" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={14} />}
+              {visibleLines.max && <Bar dataKey="max" name="Найповільніший" fill="#ef4444" radius={[0, 4, 4, 0]} barSize={14} />}
             </BarChart>
           </ResponsiveContainer>
         </div>
