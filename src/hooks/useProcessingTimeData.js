@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
 import { ref, get } from 'firebase/database';
 import { firestore, database } from '../firebase';
+import { prefixPath } from '../PathDb';
 
 function parseTimestamp(val) {
   if (!val) return null;
@@ -64,9 +65,9 @@ export function useProcessingTimeData() {
 
         // Fetch meta and orders in parallel
         const [sitesSnap, managersSnap, shippingSnap, ordersSnap] = await Promise.all([
-          get(ref(database, 'meta/site_db')),
-          get(ref(database, 'meta/manager_db')),
-          get(ref(database, 'meta/shipping_method_db')),
+          get(ref(database, `${prefixPath}/meta/site_db`)),
+          get(ref(database, `${prefixPath}/meta/manager_db`)),
+          get(ref(database, `${prefixPath}/meta/shipping_method_db`)),
           getDocs(collection(firestore, 'analyticsLeads')),
         ]);
 
