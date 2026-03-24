@@ -1,7 +1,8 @@
 // src/hooks/useProcessingTimeData.js
 import { useState, useEffect, useMemo } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import { firestore } from '../firebase';
+import { ref, get } from 'firebase/database';
+import { firestore, database } from '../firebase';
 
 function parseTimestamp(val) {
   if (!val) return null;
@@ -50,16 +51,48 @@ export function useProcessingTimeData() {
   const [selectedShipping, setSelectedShipping] = useState('all');
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
-  // Fetch all documents
+  // Meta lookups: value -> text
+  const [metaSites, setMetaSites] = useState({});
+  const [metaManagers, setMetaManagers] = useState({});
+  const [metaShipping, setMetaShipping] = useState({});
+
+  // Fetch meta data from Realtime Database + orders from Firestore
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const snapshot = await getDocs(collection(firestore, 'analyticsLeads'));
-        const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        // Fetch meta and orders in parallel
+        const [sitesSnap, managersSnap, shippingSnap, ordersSnap] = await Promise.all([
+          get(ref(database, 'meta/site_db')),
+          get(ref(database, 'meta/manager_db')),
+          get(ref(database, 'meta/shipping_method_db')),
+          getDocs(collection(firestore, 'analyticsLeads')),
+        ]);
+
+        // Build value -> text maps
+        const buildMap = (snap) => {
+          const map = {};
+          if (snap.exists()) {
+            const data = snap.val();
+            const items = Array.isArray(data) ? data : Object.values(data);
+            items.forEach(item => {
+              if (item && item.value != null) {
+                map[item.value] = item.text || String(item.value);
+              }
+            });
+          }
+          return map;
+        };
+
+        setMetaSites(buildMap(sitesSnap));
+        setMetaManagers(buildMap(managersSnap));
+        setMetaShipping(buildMap(shippingSnap));
+
+        const orders = ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         setRawOrders(orders);
       } catch (err) {
-        console.error('Firestore fetch error:', err);
+        console.error('Fetch error:', err);
         setError('Помилка завантаження даних');
       } finally {
         setLoading(false);
@@ -68,11 +101,11 @@ export function useProcessingTimeData() {
     fetchData();
   }, []);
 
-  // Extract available filter values
+  // Extract available filter values with text labels from meta
   const { availableSajts, availableManagers, availableShippings, availableYears } = useMemo(() => {
-    const sajts = [...new Set(rawOrders.map(o => o.sajt).filter(v => v != null))].sort((a, b) => a - b);
-    const managers = [...new Set(rawOrders.map(o => o.managerId).filter(v => v != null))].sort((a, b) => a - b);
-    const shippings = [...new Set(rawOrders.map(o => o.shippingMethod).filter(v => v != null))].sort((a, b) => a - b);
+    const sajtValues = [...new Set(rawOrders.map(o => o.sajt).filter(v => v != null))].sort((a, b) => a - b);
+    const managerValues = [...new Set(rawOrders.map(o => o.managerId).filter(v => v != null))].sort((a, b) => a - b);
+    const shippingValues = [...new Set(rawOrders.map(o => o.shippingMethod).filter(v => v != null))].sort((a, b) => a - b);
     const years = [...new Set(
       rawOrders
         .map(o => {
@@ -82,8 +115,12 @@ export function useProcessingTimeData() {
         .filter(Boolean)
     )].sort((a, b) => b - a);
 
+    const sajts = sajtValues.map(v => ({ value: v, text: metaSites[v] || String(v) }));
+    const managers = managerValues.map(v => ({ value: v, text: metaManagers[v] || String(v) }));
+    const shippings = shippingValues.map(v => ({ value: v, text: metaShipping[v] || String(v) }));
+
     return { availableSajts: sajts, availableManagers: managers, availableShippings: shippings, availableYears: years };
-  }, [rawOrders]);
+  }, [rawOrders, metaSites, metaManagers, metaShipping]);
 
   // Set default year when data loads
   useEffect(() => {

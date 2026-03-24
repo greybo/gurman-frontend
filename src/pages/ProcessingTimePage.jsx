@@ -93,7 +93,7 @@ export default function ProcessingTimePage() {
             >
               <option value="all">Всі сайти</option>
               {availableSajts.map(s => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s.value} value={s.value}>{s.text}</option>
               ))}
             </select>
           </div>
@@ -107,7 +107,7 @@ export default function ProcessingTimePage() {
             >
               <option value="all">Всі менеджери</option>
               {availableManagers.map(m => (
-                <option key={m} value={m}>{m}</option>
+                <option key={m.value} value={m.value}>{m.text}</option>
               ))}
             </select>
           </div>
@@ -121,7 +121,7 @@ export default function ProcessingTimePage() {
             >
               <option value="all">Всі методи</option>
               {availableShippings.map(s => (
-                <option key={s} value={s}>{s}</option>
+                <option key={s.value} value={s.value}>{s.text}</option>
               ))}
             </select>
           </div>
