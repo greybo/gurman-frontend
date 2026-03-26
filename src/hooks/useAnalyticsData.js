@@ -36,7 +36,7 @@ export const useAnalyticsData = () => {
   // Fetch year data to get available months
   useEffect(() => {
     console.log('[useAnalyticsData] Fetching year data:', selectedYear);
-    const yearRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}`);
+    const yearRef = ref(database, `${prefixPath}/logging_db/APP_SCAN/${selectedYear}`);
 
     const unsubscribe = onValue(yearRef, (snapshot) => {
       try {
@@ -70,7 +70,7 @@ export const useAnalyticsData = () => {
     }
 
     console.log('[useAnalyticsData] Fetching month data:', selectedYear, selectedMonth);
-    const monthRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}/${selectedMonth}`);
+    const monthRef = ref(database, `${prefixPath}/logging_db/APP_SCAN/${selectedYear}/${selectedMonth}`);
 
     const unsubscribe = onValue(monthRef, (snapshot) => {
       try {
@@ -115,7 +115,7 @@ export const useAnalyticsData = () => {
     console.log('[useAnalyticsData] Fetching logging data for:', selectedYear, selectedMonth, selectedDay);
     setLoading(true);
 
-    const dayRef = ref(database, `${prefixPath}/logging_db/Scanning/${selectedYear}/${selectedMonth}/${selectedDay}`);
+    const dayRef = ref(database, `${prefixPath}/logging_db/APP_SCAN/${selectedYear}/${selectedMonth}/${selectedDay}`);
 
     const unsubscribe = onValue(dayRef, (snapshot) => {
       try {
@@ -123,7 +123,7 @@ export const useAnalyticsData = () => {
           const data = snapshot.val();
           console.log('[useAnalyticsData] Logging data received, entries:', Object.keys(data).length);
           setLoggingData(data);
-          setUsers([...new Set(Object.values(data).map(item => item.userId))].filter(Boolean));
+          setUsers([...new Set(Object.values(data).map(item => item.workerName))].filter(Boolean).sort());
           setActions([...new Set(Object.values(data).map(item => item.screen))].filter(Boolean));
         } else {
           console.warn('[useAnalyticsData] No logging data for day:', selectedYear, selectedMonth, selectedDay);
@@ -188,7 +188,7 @@ export const useAnalyticsData = () => {
     let filteredEntries = Object.entries(loggingData);
 
     if (selectedUser !== 'all') {
-      filteredEntries = filteredEntries.filter(([, data]) => data.userId === selectedUser);
+      filteredEntries = filteredEntries.filter(([, data]) => data.workerName === selectedUser);
     }
     if (selectedAction !== 'all') {
       filteredEntries = filteredEntries.filter(([, data]) => data.screen === selectedAction);
@@ -202,18 +202,17 @@ export const useAnalyticsData = () => {
       return;
     }
 
-    const getTotalMinutes = (logId) => {
-      const timeStr = String(logId).padStart(6, '0');
-      const hours = parseInt(timeStr.slice(0, 2), 10);
-      const minutes = parseInt(timeStr.slice(2, 4), 10);
-      return isNaN(hours) || isNaN(minutes) ? null : hours * 60 + minutes;
+    const getTotalMinutes = (item) => {
+      if (!item.timestamp) return null;
+      const date = new Date(item.timestamp);
+      return date.getHours() * 60 + date.getMinutes();
     };
 
     let minTotalMinutes = Infinity;
     let maxTotalMinutes = -Infinity;
 
-    filteredEntries.forEach(([logId]) => {
-      const currentMinutes = getTotalMinutes(logId);
+    filteredEntries.forEach(([, item]) => {
+      const currentMinutes = getTotalMinutes(item);
       if (currentMinutes !== null) {
         if (currentMinutes < minTotalMinutes) minTotalMinutes = currentMinutes;
         if (currentMinutes > maxTotalMinutes) maxTotalMinutes = currentMinutes;
@@ -236,8 +235,8 @@ export const useAnalyticsData = () => {
       intervalData[intervalKey] = { time: intervalKey, successCount: 0, failCount: 0, total: 0 };
     }
 
-    const getTimeIntervalKey = (logId) => {
-      const totalMinutes = getTotalMinutes(logId);
+    const getTimeIntervalKey = (item) => {
+      const totalMinutes = getTotalMinutes(item);
       if (totalMinutes === null) return null;
       const intervalMinutes = Math.floor(totalMinutes / timeInterval) * timeInterval;
       const intervalHours = Math.floor(intervalMinutes / 60);
@@ -245,8 +244,8 @@ export const useAnalyticsData = () => {
       return `${String(intervalHours).padStart(2, '0')}:${String(intervalMins).padStart(2, '0')}`;
     };
 
-    filteredEntries.forEach(([logId, item]) => {
-      const intervalKey = getTimeIntervalKey(logId);
+    filteredEntries.forEach(([, item]) => {
+      const intervalKey = getTimeIntervalKey(item);
       if (intervalKey && intervalData[intervalKey]) {
         intervalData[intervalKey].total += 1;
         if (item.success === true || item.success === 'true') {
