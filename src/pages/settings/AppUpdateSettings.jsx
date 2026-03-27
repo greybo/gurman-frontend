@@ -336,7 +336,24 @@ export default function AppUpdateSettings({
                 {current.releaseNotes && (
                   <div className="pt-2 border-t border-gray-100">
                     <span className="text-gray-500 text-xs">Release Notes:</span>
-                    <p className="text-gray-700 mt-0.5">{current.releaseNotes}</p>
+                    <div className="text-gray-700 mt-0.5 text-sm space-y-1">
+                      {current.releaseNotes.split('\n').map((line, i) => {
+                        const trimmed = line.trim();
+                        if (!trimmed) return <br key={i} />;
+                        const isBullet = /^[-*•]\s/.test(trimmed);
+                        const text = isBullet ? trimmed.replace(/^[-*•]\s+/, '') : trimmed;
+                        const formatted = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                                              .replace(/`(.+?)`/g, '<code class="bg-gray-100 px-1 rounded text-xs">$1</code>');
+                        return isBullet ? (
+                          <div key={i} className="flex gap-1.5 items-start">
+                            <span className="text-gray-400 mt-0.5">•</span>
+                            <span dangerouslySetInnerHTML={{ __html: formatted }} />
+                          </div>
+                        ) : (
+                          <p key={i} dangerouslySetInnerHTML={{ __html: formatted }} />
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
                 {current.updatedAt && (
