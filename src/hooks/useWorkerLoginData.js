@@ -54,7 +54,7 @@ export default function useWorkerLoginData() {
       map[id].logins.push({
         timestamp: item.timestamp,
         deviceModel: item.deviceModel || '—',
-        currentVersion: item.currentVersion || '—',
+        appVersion: item.appVersion || '—',
         success: item.success,
       });
     });

@@ -127,7 +127,7 @@ export default function WorkerLoginTracking() {
                                       {login.deviceModel}
                                     </span>
                                     <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-mono">
-                                      {login.currentVersion}
+                                      {login.appVersion}
                                     </span>
                                     {login.success ? (
                                       <span className="flex items-center gap-1 text-green-600 text-xs">
