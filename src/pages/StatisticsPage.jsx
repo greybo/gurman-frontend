@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { GitBranch, LogIn } from 'lucide-react';
+import { GitBranch, LogIn, MousePointerClick } from 'lucide-react';
 import OrderStatusTracking from '../components/statistics/OrderStatusTracking';
 import WorkerLoginTracking from '../components/statistics/WorkerLoginTracking';
+import ButtonClickTracking from '../components/statistics/ButtonClickTracking';
 
 const tabs = [
   { id: 'order-statuses', label: 'Статуси замовлень', icon: GitBranch },
   { id: 'worker-logins', label: 'Вхід', icon: LogIn },
+  { id: 'button-clicks', label: 'Кліки', icon: MousePointerClick },
 ];
 
 export default function StatisticsPage() {
@@ -44,6 +46,7 @@ export default function StatisticsPage() {
       {/* Tab content */}
       {activeTab === 'order-statuses' && <OrderStatusTracking />}
       {activeTab === 'worker-logins' && <WorkerLoginTracking />}
+      {activeTab === 'button-clicks' && <ButtonClickTracking />}
     </div>
   );
 }
