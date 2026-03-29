@@ -130,14 +130,14 @@ export default function ButtonClickTracking() {
                 <th className="w-10 px-4 py-3"></th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Екран</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Працівник</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Версія</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Пристрій</th>
+                <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Остання операція</th>
                 <th className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">Кліків</th>
               </tr>
             </thead>
             <tbody>
               {groups.map((group) => {
                 const isExpanded = expandedGroup === group.key;
+                const lastClick = group.clicks[group.clicks.length - 1];
                 return (
                   <React.Fragment key={group.key}>
                     <tr
@@ -149,16 +149,10 @@ export default function ButtonClickTracking() {
                       </td>
                       <td className="px-4 py-3 text-sm font-medium text-gray-900">{group.screen}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{group.workerName}</td>
-                      <td className="px-4 py-3">
-                        <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-mono">
-                          {group.appVersion}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-500 text-xs">
-                        <span className="flex items-center gap-1">
-                          <Smartphone size={12} className="text-gray-400" />
-                          {group.deviceModel}
-                        </span>
+                      <td className="px-4 py-3 text-sm text-gray-600">
+                        <span className="font-mono text-xs">{formatTime(lastClick.timestamp)}</span>
+                        {' '}
+                        <span className="text-xs text-gray-400">{lastClick.buttonName}</span>
                       </td>
                       <td className="px-4 py-3">
                         <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-brand-50 text-brand-700">
@@ -169,7 +163,7 @@ export default function ButtonClickTracking() {
 
                     {isExpanded && (
                       <tr>
-                        <td colSpan={6} className="px-4 py-0 bg-gray-50/50">
+                        <td colSpan={5} className="px-4 py-0 bg-gray-50/50">
                           <div className="py-3 pl-6 pr-2">
                             <div className="relative border-l-2 border-brand-200 pl-6 space-y-2">
                               {group.clicks.map((click, idx) => (
@@ -191,6 +185,13 @@ export default function ButtonClickTracking() {
                                         {click.invoiceId}
                                       </span>
                                     )}
+                                    <span className="flex items-center gap-1 text-gray-400 text-xs ml-auto">
+                                      <Smartphone size={11} />
+                                      {click.deviceModel}
+                                    </span>
+                                    <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-mono">
+                                      {click.appVersion}
+                                    </span>
                                     {!click.success && (
                                       <span className="text-red-500 text-xs font-medium">Помилка</span>
                                     )}
