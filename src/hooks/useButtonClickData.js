@@ -73,14 +73,13 @@ export default function useButtonClickData() {
 
     const map = {};
     entries.forEach((item) => {
-      const key = `${item.screen || ''}__${item.workerId || ''}__${item.invoiceId || ''}__${item.appVersion || ''}__${item.deviceModel || ''}`;
+      const key = `${item.screen || ''}__${item.workerId || ''}__${item.appVersion || ''}__${item.deviceModel || ''}`;
       if (!map[key]) {
         map[key] = {
           key,
           screen: item.screen || '—',
           workerId: item.workerId || '—',
           workerName: item.workerName || '—',
-          invoiceId: item.invoiceId || '—',
           appVersion: item.appVersion || '—',
           deviceModel: item.deviceModel || '—',
           clicks: [],
@@ -90,6 +89,7 @@ export default function useButtonClickData() {
         timestamp: item.timestamp,
         buttonName: item.buttonName || '—',
         barcode: item.barcode || '—',
+        invoiceId: item.invoiceId || '—',
         success: item.success,
       });
     });
