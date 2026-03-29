@@ -1,5 +1,5 @@
 // src/pages/OrdersPage.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Package,
   RefreshCw,
@@ -12,6 +12,12 @@ import {
 } from 'lucide-react';
 import useOrdersData, { getStatusInfo } from '../hooks/useOrdersData';
 
+function getHoursAgo(dateString) {
+  if (!dateString) return 0;
+  const d = new Date(dateString.replace(' ', 'T'));
+  return Math.floor((new Date() - d) / (1000 * 60 * 60));
+}
+
 export default function OrdersPage() {
   const {
     loading,
@@ -19,6 +25,7 @@ export default function OrdersPage() {
     groupedOrders,
     sortedStatusKeys,
     pendingOrders,
+    overdueOrders,
     stats,
     expandedGroups,
     toggleGroup,
@@ -28,6 +35,8 @@ export default function OrdersPage() {
     isDateOlderThan24h,
     deleteOrder,
   } = useOrdersData();
+
+  const [overdueExpanded, setOverdueExpanded] = useState(false);
 
   const handleDelete = (order) => {
     const name = `${order.fName || ''} ${order.lName || ''}`.trim() || '—';
@@ -114,6 +123,61 @@ export default function OrdersPage() {
             </div>
           ))}
       </div>
+
+      {/* Overdue Orders (>24h) */}
+      {overdueOrders.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl overflow-hidden mb-6 shadow-sm">
+          <button
+            className="w-full px-6 py-4 flex items-center justify-between hover:bg-red-100/50 transition-colors"
+            onClick={() => setOverdueExpanded(!overdueExpanded)}
+          >
+            <div className="flex items-center gap-3">
+              {overdueExpanded ? (
+                <ChevronDown size={20} className="text-red-600" />
+              ) : (
+                <ChevronRight size={20} className="text-red-600" />
+              )}
+              <AlertCircle size={20} className="text-red-600" />
+              <span className="font-semibold text-red-900">
+                Прострочені замовлення ({overdueOrders.length})
+              </span>
+              <span className="text-sm text-red-600">
+                дата оновлення більше 24 годин
+              </span>
+            </div>
+          </button>
+
+          {overdueExpanded && (
+            <div className="px-6 pb-4 space-y-2">
+              {overdueOrders.map((order) => {
+                const info = getStatusInfo(order.statusId);
+                const hours = getHoursAgo(order.updateDate);
+                return (
+                  <div className="bg-white rounded-lg p-3 flex items-center gap-3 flex-wrap" key={order.orderId}>
+                    <span className="font-semibold text-gray-900">#{order.id}</span>
+                    <span className="text-gray-600 text-sm flex-1 min-w-fit">
+                      {getClientName(order)}
+                    </span>
+                    <span className={getStatusBadgeClasses(info.color)}>
+                      {info.label}
+                    </span>
+                    <span className="flex items-center gap-1.5 text-red-600 text-sm font-medium">
+                      <Clock size={13} />
+                      {hours} год тому
+                    </span>
+                    <span className="text-gray-500 text-xs">
+                      {formatDate(order.updateDate)}
+                    </span>
+                    <span className="flex items-center gap-1.5 text-gray-500 text-sm">
+                      <Truck size={13} /> {getShipping(order)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Pending Orders Alert */}
       {pendingOrders.length > 0 && (

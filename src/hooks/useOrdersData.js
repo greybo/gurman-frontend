@@ -120,6 +120,18 @@ export default function useOrdersData() {
       .sort((a, b) => (a.updateDate || '').localeCompare(b.updateDate || ''));
   }, [orders]);
 
+  // Orders older than 24h
+  const overdueOrders = useMemo(() => {
+    const now = new Date();
+    return orders
+      .filter((o) => {
+        if (!o.updateDate) return false;
+        const d = new Date(o.updateDate.replace(' ', 'T'));
+        return (now - d) > 24 * 60 * 60 * 1000;
+      })
+      .sort((a, b) => (a.updateDate || '').localeCompare(b.updateDate || ''));
+  }, [orders]);
+
   // Summary stats
   const stats = useMemo(() => {
     const total = orders.length;
@@ -188,6 +200,7 @@ export default function useOrdersData() {
     groupedOrders,
     sortedStatusKeys,
     pendingOrders,
+    overdueOrders,
     stats,
     expandedGroups,
     toggleGroup,
