@@ -33,55 +33,50 @@ export default function useAppUpdateData() {
     return () => unsubscribe();
   }, [year, month, day]);
 
-  // Group by workerId
-  const groupedWorkers = useMemo(() => {
+  // Group by deviceModel
+  const groupedDevices = useMemo(() => {
     const entries = Object.values(rawData);
     const map = {};
 
     entries.forEach((item) => {
-      const id = item.workerId;
-      if (!id) return;
-      if (!map[id]) {
-        map[id] = {
-          workerId: id,
-          workerName: item.workerName || '—',
+      const device = item.deviceModel || 'Unknown';
+      if (!map[device]) {
+        map[device] = {
+          deviceModel: device,
           updates: [],
         };
       }
-      if (item.workerName) {
-        map[id].workerName = item.workerName;
-      }
-      map[id].updates.push({
+      map[device].updates.push({
         timestamp: item.timestamp,
         fromVersion: item.fromVersion || '—',
         toVersion: item.toVersion || '—',
-        deviceModel: item.deviceModel || '—',
+        workerName: item.workerName || '—',
         success: item.success,
       });
     });
 
-    Object.values(map).forEach((worker) => {
-      worker.updates.sort((a, b) => a.timestamp - b.timestamp);
+    Object.values(map).forEach((group) => {
+      group.updates.sort((a, b) => a.timestamp - b.timestamp);
     });
 
     return map;
   }, [rawData]);
 
-  const filteredWorkers = useMemo(() => {
-    const workers = Object.values(groupedWorkers);
-    if (!searchQuery.trim()) return workers;
+  const filteredDevices = useMemo(() => {
+    const devices = Object.values(groupedDevices);
+    if (!searchQuery.trim()) return devices;
 
     const q = searchQuery.trim().toLowerCase();
-    return workers.filter(
-      (w) =>
-        w.workerName.toLowerCase().includes(q) ||
-        w.updates.some(u =>
+    return devices.filter(
+      (d) =>
+        d.deviceModel.toLowerCase().includes(q) ||
+        d.updates.some(u =>
           u.fromVersion.toLowerCase().includes(q) ||
           u.toVersion.toLowerCase().includes(q) ||
-          u.deviceModel.toLowerCase().includes(q)
+          u.workerName.toLowerCase().includes(q)
         )
     );
-  }, [groupedWorkers, searchQuery]);
+  }, [groupedDevices, searchQuery]);
 
   return {
     selectedDate,
@@ -89,8 +84,8 @@ export default function useAppUpdateData() {
     loading,
     searchQuery,
     setSearchQuery,
-    workers: filteredWorkers,
-    totalWorkers: Object.keys(groupedWorkers).length,
+    devices: filteredDevices,
+    totalDevices: Object.keys(groupedDevices).length,
     totalUpdates: Object.keys(rawData).length,
   };
 }
