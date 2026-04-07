@@ -24,6 +24,7 @@ export default function OrderStatusTracking() {
     setFilterStatus,
     workers,
     statuses,
+    statusCounts,
     orders,
     totalOrders,
   } = useStatusChangeData();
@@ -133,10 +134,41 @@ export default function OrderStatusTracking() {
         {/* Counter */}
         <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg text-sm text-gray-600">
           <span className="font-medium">{orders.length}</span>
-          {searchQuery && <span>/ {totalOrders}</span>}
+          {(filterStatus !== 'all' || searchQuery) && <span>/ {totalOrders}</span>}
           <span>замовлень</span>
         </div>
       </div>
+
+      {/* Status counts (by last operation) */}
+      {Object.keys(statusCounts).length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => setFilterStatus('all')}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              filterStatus === 'all'
+                ? 'bg-brand-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Всі: {totalOrders}
+          </button>
+          {Object.entries(statusCounts)
+            .sort((a, b) => b[1] - a[1])
+            .map(([status, count]) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(filterStatus === status ? 'all' : status)}
+                className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  filterStatus === status
+                    ? 'bg-brand-600 text-white'
+                    : 'bg-green-50 text-green-700 hover:bg-green-100'
+                }`}
+              >
+                {status}: {count}
+              </button>
+            ))}
+        </div>
+      )}
 
       {/* Table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

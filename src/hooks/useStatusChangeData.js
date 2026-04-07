@@ -58,35 +58,10 @@ export default function useStatusChangeData() {
     load();
   }, [dateFrom, dateTo]);
 
-  // Extract unique workers and statuses for filter dropdowns
-  const { workers, statuses } = useMemo(() => {
-    const workerSet = new Set();
-    const statusSet = new Set();
-    Object.values(rawData).forEach((item) => {
-      if (item.workerName) workerSet.add(item.workerName);
-      if (item.toStatus) statusSet.add(item.toStatus);
-    });
-    return {
-      workers: [...workerSet].sort(),
-      statuses: [...statusSet].sort(),
-    };
-  }, [rawData]);
-
-  // Group by orderId and apply transition-level filters
-  const groupedOrders = useMemo(() => {
-    let entries = Object.values(rawData);
-
-    // Filter by worker
-    if (filterWorker !== 'all') {
-      entries = entries.filter((item) => item.workerName === filterWorker);
-    }
-    // Filter by toStatus
-    if (filterStatus !== 'all') {
-      entries = entries.filter((item) => item.toStatus === filterStatus);
-    }
-
+  // Group ALL entries by orderId (no filters) to get complete transition history
+  const allOrders = useMemo(() => {
     const map = {};
-    entries.forEach((item) => {
+    Object.values(rawData).forEach((item) => {
       const id = item.orderId;
       if (!id) return;
       if (!map[id]) {
@@ -108,25 +83,70 @@ export default function useStatusChangeData() {
       });
     });
 
+    // Sort transitions and compute lastStatus per order
     Object.values(map).forEach((order) => {
       order.transitions.sort((a, b) => a.timestamp - b.timestamp);
+      const last = order.transitions[order.transitions.length - 1];
+      order.lastStatus = last?.toStatus || '—';
     });
 
     return map;
-  }, [rawData, filterWorker, filterStatus]);
+  }, [rawData]);
 
-  // Filter by search query
-  const filteredOrders = useMemo(() => {
-    const orders = Object.values(groupedOrders);
-    if (!searchQuery.trim()) return orders;
+  // Extract unique workers (any transition) and statuses (only last operation)
+  const { workers, statuses } = useMemo(() => {
+    const workerSet = new Set();
+    const statusSet = new Set();
+    Object.values(allOrders).forEach((order) => {
+      order.transitions.forEach((t) => {
+        if (t.workerName && t.workerName !== '—') workerSet.add(t.workerName);
+      });
+      if (order.lastStatus && order.lastStatus !== '—') statusSet.add(order.lastStatus);
+    });
+    return {
+      workers: [...workerSet].sort(),
+      statuses: [...statusSet].sort(),
+    };
+  }, [allOrders]);
 
-    const q = searchQuery.trim().toLowerCase();
-    return orders.filter(
-      (o) =>
-        String(o.orderId).includes(q) ||
-        String(o.trackingNumber).toLowerCase().includes(q)
+  // Apply worker filter — keep orders that contain at least one transition by this worker
+  const ordersAfterWorker = useMemo(() => {
+    const list = Object.values(allOrders);
+    if (filterWorker === 'all') return list;
+    return list.filter((order) =>
+      order.transitions.some((t) => t.workerName === filterWorker)
     );
-  }, [groupedOrders, searchQuery]);
+  }, [allOrders, filterWorker]);
+
+  // Status counts based on lastStatus (after worker filter, BEFORE status filter)
+  const statusCounts = useMemo(() => {
+    const counts = {};
+    ordersAfterWorker.forEach((order) => {
+      const key = order.lastStatus || '—';
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return counts;
+  }, [ordersAfterWorker]);
+
+  // Apply status filter (by lastStatus) and search
+  const filteredOrders = useMemo(() => {
+    let list = ordersAfterWorker;
+
+    if (filterStatus !== 'all') {
+      list = list.filter((order) => order.lastStatus === filterStatus);
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter(
+        (o) =>
+          String(o.orderId).includes(q) ||
+          String(o.trackingNumber).toLowerCase().includes(q)
+      );
+    }
+
+    return list;
+  }, [ordersAfterWorker, filterStatus, searchQuery]);
 
   return {
     dateFrom,
@@ -142,7 +162,8 @@ export default function useStatusChangeData() {
     setFilterStatus,
     workers,
     statuses,
+    statusCounts,
     orders: filteredOrders,
-    totalOrders: Object.keys(groupedOrders).length,
+    totalOrders: ordersAfterWorker.length,
   };
 }
