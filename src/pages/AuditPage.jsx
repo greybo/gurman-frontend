@@ -9,6 +9,9 @@ import {
   CheckCircle2,
   Circle,
   Search,
+  Check,
+  X,
+  MapPin,
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import {
@@ -184,15 +187,36 @@ function SessionCard({ session, onClick, onDelete }) {
 }
 
 function AuditSessionDetail({ session, onBack }) {
-  const { items, counts, loading, error } = useAuditItems(session.sessionId);
+  const { items, counts, loading, error, resolveItem } = useAuditItems(session.sessionId);
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('difference'); // difference / name
+  const [placeFilter, setPlaceFilter] = useState('all');
+  const [resolutionModal, setResolutionModal] = useState(null); // { item, action }
+
+  // Unique places extracted from items
+  const availablePlaces = useMemo(() => {
+    const set = new Set();
+    items.forEach((i) => {
+      if (Array.isArray(i.placeCode)) {
+        i.placeCode.forEach((p) => p && set.add(p));
+      } else if (typeof i.placeCode === 'string' && i.placeCode) {
+        set.add(i.placeCode);
+      }
+    });
+    return [...set].sort();
+  }, [items]);
 
   const filteredItems = useMemo(() => {
     let list = items;
     if (activeTab !== 'all') {
       list = list.filter((i) => i.status === activeTab);
+    }
+    if (placeFilter !== 'all') {
+      list = list.filter((i) => {
+        if (Array.isArray(i.placeCode)) return i.placeCode.includes(placeFilter);
+        return i.placeCode === placeFilter;
+      });
     }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -213,7 +237,7 @@ function AuditSessionDetail({ session, onBack }) {
       list = [...list].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     }
     return list;
-  }, [items, activeTab, searchQuery, sortBy]);
+  }, [items, activeTab, searchQuery, sortBy, placeFilter]);
 
   const topDiscrepancies = useMemo(() => {
     return [...items]
@@ -387,6 +411,22 @@ function AuditSessionDetail({ session, onBack }) {
             className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
           />
         </div>
+        <div className="relative">
+          <MapPin
+            size={16}
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+          />
+          <select
+            value={placeFilter}
+            onChange={(e) => setPlaceFilter(e.target.value)}
+            className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 appearance-none bg-white"
+          >
+            <option value="all">Всі місця</option>
+            {availablePlaces.map((p) => (
+              <option key={p} value={p}>{p}</option>
+            ))}
+          </select>
+        </div>
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
@@ -432,13 +472,16 @@ function AuditSessionDetail({ session, onBack }) {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
                   Перевірив
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-900">
+                  Резолюція
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
               {filteredItems.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={8}
                     className="px-4 py-12 text-center text-gray-500 text-sm"
                   >
                     Товарів не знайдено
@@ -446,18 +489,128 @@ function AuditSessionDetail({ session, onBack }) {
                 </tr>
               ) : (
                 filteredItems.map((item) => (
-                  <ItemRow key={item.productId} item={item} />
+                  <ItemRow
+                    key={item.productId}
+                    item={item}
+                    onResolveClick={(action) => setResolutionModal({ item, action })}
+                  />
                 ))
               )}
             </tbody>
           </table>
         </div>
       )}
+
+      {/* Resolution modal */}
+      {resolutionModal && (
+        <ResolutionModal
+          item={resolutionModal.item}
+          action={resolutionModal.action}
+          onClose={() => setResolutionModal(null)}
+          onConfirm={async (comment) => {
+            await resolveItem(resolutionModal.item.productId, resolutionModal.action, comment);
+            setResolutionModal(null);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function ItemRow({ item }) {
+function ResolutionModal({ item, action, onClose, onConfirm }) {
+  const [comment, setComment] = useState('');
+  const [saving, setSaving] = useState(false);
+  const isApprove = action === 'approved';
+  const diff = (item.actualQty || 0) - (item.expectedQty || 0);
+
+  const handleConfirm = async () => {
+    setSaving(true);
+    try {
+      await onConfirm(comment);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3 mb-4">
+          {isApprove ? (
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center">
+              <Check size={20} className="text-green-600" />
+            </div>
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+              <X size={20} className="text-red-600" />
+            </div>
+          )}
+          <div>
+            <h3 className="font-semibold text-gray-900">
+              {isApprove ? 'Підтвердити розбіжність' : 'Відхилити розбіжність'}
+            </h3>
+            <p className="text-xs text-gray-500">{item.name || '—'}</p>
+          </div>
+        </div>
+
+        <div className="bg-gray-50 rounded-lg p-3 mb-4 text-sm">
+          <div className="flex justify-between text-gray-600 mb-1">
+            <span>Очікувана:</span>
+            <span className="font-medium text-gray-900">{item.expectedQty ?? '—'}</span>
+          </div>
+          <div className="flex justify-between text-gray-600 mb-1">
+            <span>Фактична:</span>
+            <span className="font-medium text-gray-900">{item.actualQty ?? '—'}</span>
+          </div>
+          <div className="flex justify-between text-gray-600">
+            <span>Різниця:</span>
+            <span className={`font-semibold ${diff > 0 ? 'text-blue-600' : 'text-red-600'}`}>
+              {diff > 0 ? `+${diff}` : diff}
+            </span>
+          </div>
+        </div>
+
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Коментар {!isApprove && <span className="text-red-500">*</span>}
+        </label>
+        <textarea
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder={isApprove ? 'Необов\'язково...' : 'Поясніть причину відхилення...'}
+          rows={3}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 resize-none"
+        />
+
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+          >
+            Скасувати
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={saving || (!isApprove && !comment.trim())}
+            className={`flex-1 px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+              isApprove ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'
+            }`}
+          >
+            {saving ? 'Збереження...' : isApprove ? 'Підтвердити' : 'Відхилити'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ItemRow({ item, onResolveClick }) {
   const diff = (item.actualQty || 0) - (item.expectedQty || 0);
   const isDiscrepancy = item.status === 'discrepancy';
   const isUnchecked = item.status === 'unchecked';
@@ -494,6 +647,48 @@ function ItemRow({ item }) {
       <td className="px-4 py-3 text-xs text-gray-600">{place}</td>
       <td className="px-4 py-3 text-xs text-gray-600">
         {item.checkedByName || '—'}
+      </td>
+      <td className="px-4 py-3 text-xs">
+        {isDiscrepancy ? (
+          item.resolution ? (
+            <div className="flex flex-col gap-0.5">
+              <span
+                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium w-fit ${
+                  item.resolution === 'approved'
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                }`}
+              >
+                {item.resolution === 'approved' ? <Check size={11} /> : <X size={11} />}
+                {item.resolution === 'approved' ? 'Підтверджено' : 'Відхилено'}
+              </span>
+              {item.resolutionComment && (
+                <span className="text-gray-500 truncate max-w-[180px]" title={item.resolutionComment}>
+                  {item.resolutionComment}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="flex gap-1">
+              <button
+                onClick={() => onResolveClick('approved')}
+                className="p-1.5 rounded hover:bg-green-100 text-green-600 transition-colors"
+                title="Підтвердити"
+              >
+                <Check size={14} />
+              </button>
+              <button
+                onClick={() => onResolveClick('rejected')}
+                className="p-1.5 rounded hover:bg-red-100 text-red-600 transition-colors"
+                title="Відхилити"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )
+        ) : (
+          <span className="text-gray-300">—</span>
+        )}
       </td>
     </tr>
   );

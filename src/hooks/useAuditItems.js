@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { onValue, ref } from 'firebase/database';
+import { onValue, ref, update } from 'firebase/database';
 import { database } from '../firebase';
 import { auditItemsDbPath } from '../PathDb';
 
@@ -56,5 +56,15 @@ export function useAuditItems(sessionId) {
     };
   }, [items]);
 
-  return { items, counts, loading, error };
+  const resolveItem = async (productId, resolution, comment) => {
+    if (!sessionId || !productId) return;
+    const itemRef = ref(database, `${auditItemsDbPath(sessionId)}/${productId}`);
+    await update(itemRef, {
+      resolution, // 'approved' | 'rejected' | null
+      resolutionComment: comment || '',
+      resolvedAt: Date.now(),
+    });
+  };
+
+  return { items, counts, loading, error, resolveItem };
 }
