@@ -3,7 +3,7 @@ import React, { useState, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
   BarChart2, LogOut, Settings as SettingsIcon, ShoppingCart, Package,
-  FileSpreadsheet, Menu, X, ChevronLeft, Clock, Activity
+  FileSpreadsheet, Menu, X, ChevronLeft, Clock, Activity, ClipboardList
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
@@ -16,6 +16,7 @@ import SalesPage from './pages/SalesPage';
 import OrdersPage from './pages/OrdersPage';
 import ProcessingTimePage from './pages/ProcessingTimePage';
 import StatisticsPage from './pages/StatisticsPage';
+import AuditPage from './pages/AuditPage';
 
 // Sidebar context to share collapsed state
 const SidebarContext = createContext({ collapsed: false, setCollapsed: () => {} });
@@ -27,6 +28,7 @@ const navItems = [
   { path: '/orders', label: 'Замовлення', icon: Package },
   { path: '/processing-time', label: 'Час обробки', icon: Clock },
   { path: '/statistics', label: 'Статистика', icon: Activity },
+  { path: '/audit', label: 'Переоблік', icon: ClipboardList },
   { path: '/excel', label: 'Excel Manager', icon: FileSpreadsheet },
   { path: '/settings', label: 'Налаштування', icon: SettingsIcon },
 ];
@@ -177,6 +179,7 @@ function AppRoutes() {
         <Route path="/orders" element={<PrivateRoute><OrdersPage /></PrivateRoute>} />
         <Route path="/processing-time" element={<PrivateRoute><ProcessingTimePage /></PrivateRoute>} />
         <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
+        <Route path="/audit" element={<PrivateRoute><AuditPage /></PrivateRoute>} />
         <Route path="/excel" element={<PrivateRoute><ExcelManager /></PrivateRoute>} />
         <Route path="/settings" element={<PrivateRoute><SettingsPage /></PrivateRoute>} />
         <Route path="/test" element={<PrivateRoute><TestPage /></PrivateRoute>} />
