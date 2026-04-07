@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import DatePicker from 'react-datepicker';
 import { uk } from 'date-fns/locale';
-import { Search, ChevronDown, ChevronRight, ArrowRight, Calendar, Loader2 } from 'lucide-react';
+import { Search, ChevronDown, ChevronRight, ArrowRight, Calendar, Loader2, User, Tag } from 'lucide-react';
 import useStatusChangeData from '../../hooks/useStatusChangeData';
 
 function formatTime(timestamp) {
@@ -11,11 +11,19 @@ function formatTime(timestamp) {
 
 export default function OrderStatusTracking() {
   const {
-    selectedDate,
-    setSelectedDate,
+    dateFrom,
+    setDateFrom,
+    dateTo,
+    setDateTo,
     loading,
     searchQuery,
     setSearchQuery,
+    filterWorker,
+    setFilterWorker,
+    filterStatus,
+    setFilterStatus,
+    workers,
+    statuses,
     orders,
     totalOrders,
   } = useStatusChangeData();
@@ -30,23 +38,85 @@ export default function OrderStatusTracking() {
     <div className="space-y-4">
       {/* Filters row */}
       <div className="flex flex-wrap gap-3 items-end">
-        {/* Date picker */}
+        {/* Date from */}
         <div>
           <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
             <Calendar size={16} className="text-gray-500" />
-            Дата
+            Від
           </label>
           <DatePicker
-            selected={selectedDate}
-            onChange={(date) => setSelectedDate(date)}
+            selected={dateFrom}
+            onChange={(date) => {
+              setDateFrom(date);
+              if (date > dateTo) setDateTo(date);
+            }}
+            selectsStart
+            startDate={dateFrom}
+            endDate={dateTo}
+            maxDate={dateTo}
             dateFormat="dd.MM.yyyy"
             locale={uk}
             className="w-36 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           />
         </div>
 
+        {/* Date to */}
+        <div>
+          <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+            <Calendar size={16} className="text-gray-500" />
+            До
+          </label>
+          <DatePicker
+            selected={dateTo}
+            onChange={(date) => setDateTo(date)}
+            selectsEnd
+            startDate={dateFrom}
+            endDate={dateTo}
+            minDate={dateFrom}
+            dateFormat="dd.MM.yyyy"
+            locale={uk}
+            className="w-36 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          />
+        </div>
+
+        {/* Worker */}
+        <div>
+          <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+            <User size={16} className="text-gray-500" />
+            Працівник
+          </label>
+          <select
+            value={filterWorker}
+            onChange={(e) => setFilterWorker(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          >
+            <option value="all">Всі</option>
+            {workers.map((w) => (
+              <option key={w} value={w}>{w}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Status */}
+        <div>
+          <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
+            <Tag size={16} className="text-gray-500" />
+            Статус
+          </label>
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+            className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+          >
+            <option value="all">Всі</option>
+            {statuses.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </div>
+
         {/* Search */}
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-[180px]">
           <label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1">
             <Search size={16} className="text-gray-500" />
             Пошук
@@ -55,7 +125,7 @@ export default function OrderStatusTracking() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Пошук по Order ID або ТТН..."
+            placeholder="Order ID або ТТН..."
             className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
           />
         </div>
