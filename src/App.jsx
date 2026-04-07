@@ -3,7 +3,7 @@ import React, { useState, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
   BarChart2, LogOut, Settings as SettingsIcon, ShoppingCart, Package,
-  FileSpreadsheet, Menu, X, ChevronLeft, Clock, Activity, ClipboardList, TrendingUp
+  FileSpreadsheet, Menu, X, ChevronLeft, Clock, Activity, ClipboardList, TrendingUp, Home
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
@@ -18,12 +18,14 @@ import ProcessingTimePage from './pages/ProcessingTimePage';
 import StatisticsPage from './pages/StatisticsPage';
 import AuditPage from './pages/AuditPage';
 import WorkersPage from './pages/WorkersPage';
+import DashboardPage from './pages/DashboardPage';
 
 // Sidebar context to share collapsed state
 const SidebarContext = createContext({ collapsed: false, setCollapsed: () => {} });
 export const useSidebar = () => useContext(SidebarContext);
 
 const navItems = [
+  { path: '/dashboard', label: 'Головна', icon: Home },
   { path: '/', label: 'Аналітика', icon: BarChart2 },
   { path: '/sales', label: 'Продажі', icon: ShoppingCart },
   { path: '/orders', label: 'Замовлення', icon: Package },
@@ -177,6 +179,7 @@ function AppRoutes() {
     <AppLayout>
       <Routes>
         <Route path="/" element={<PrivateRoute><AnalyticsPage /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
         <Route path="/sales" element={<PrivateRoute><SalesPage /></PrivateRoute>} />
         <Route path="/orders" element={<PrivateRoute><OrdersPage /></PrivateRoute>} />
         <Route path="/processing-time" element={<PrivateRoute><ProcessingTimePage /></PrivateRoute>} />
