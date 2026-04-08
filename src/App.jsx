@@ -24,17 +24,37 @@ import DashboardPage from './pages/DashboardPage';
 const SidebarContext = createContext({ collapsed: false, setCollapsed: () => {} });
 export const useSidebar = () => useContext(SidebarContext);
 
-const navItems = [
-  { path: '/dashboard', label: 'Головна', icon: Home },
-  { path: '/', label: 'Аналітика', icon: BarChart2 },
-  { path: '/sales', label: 'Продажі', icon: ShoppingCart },
-  { path: '/orders', label: 'Замовлення', icon: Package },
-  { path: '/processing-time', label: 'Час обробки', icon: Clock },
-  { path: '/statistics', label: 'Статистика', icon: Activity },
-  { path: '/workers', label: 'Продуктивність', icon: TrendingUp },
-  { path: '/audit', label: 'Переоблік', icon: ClipboardList },
-  { path: '/excel', label: 'Excel Manager', icon: FileSpreadsheet },
-  { path: '/settings', label: 'Налаштування', icon: SettingsIcon },
+const navGroups = [
+  {
+    label: null, // no section header — top-level item
+    items: [
+      { path: '/dashboard', label: 'Головна', icon: Home },
+    ],
+  },
+  {
+    label: 'Операції',
+    items: [
+      { path: '/orders', label: 'Замовлення', icon: Package },
+      { path: '/sales', label: 'Продажі', icon: ShoppingCart },
+      { path: '/audit', label: 'Переоблік', icon: ClipboardList },
+      { path: '/excel', label: 'Excel Manager', icon: FileSpreadsheet },
+    ],
+  },
+  {
+    label: 'Аналітика',
+    items: [
+      { path: '/', label: 'Аналітика', icon: BarChart2 },
+      { path: '/statistics', label: 'Статистика', icon: Activity },
+      { path: '/processing-time', label: 'Час обробки', icon: Clock },
+      { path: '/workers', label: 'Продуктивність', icon: TrendingUp },
+    ],
+  },
+  {
+    label: 'Налаштування',
+    items: [
+      { path: '/settings', label: 'Налаштування', icon: SettingsIcon },
+    ],
+  },
 ];
 
 function Sidebar({ collapsed, setCollapsed }) {
@@ -98,24 +118,39 @@ function Sidebar({ collapsed, setCollapsed }) {
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto">
-          {navItems.map(({ path, label, icon: Icon }) => (
-            <Link
-              key={path}
-              to={path}
-              onClick={() => setMobileOpen(false)}
-              className={`
-                flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
-                ${isActive(path)
-                  ? 'bg-brand-50 text-brand-700'
-                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
-                }
-              `}
-              title={collapsed ? label : undefined}
-            >
-              <Icon size={20} className={`flex-shrink-0 ${isActive(path) ? 'text-brand-600' : ''}`} />
-              {!collapsed && <span>{label}</span>}
-            </Link>
+        <nav className="flex-1 py-4 px-3 overflow-y-auto">
+          {navGroups.map((group, idx) => (
+            <div key={idx} className={idx > 0 ? 'mt-4' : ''}>
+              {group.label && (
+                collapsed ? (
+                  <div className="mx-3 my-2 h-px bg-gray-100" />
+                ) : (
+                  <p className="px-3 mb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">
+                    {group.label}
+                  </p>
+                )
+              )}
+              <div className="space-y-1">
+                {group.items.map(({ path, label, icon: Icon }) => (
+                  <Link
+                    key={path}
+                    to={path}
+                    onClick={() => setMobileOpen(false)}
+                    className={`
+                      flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150
+                      ${isActive(path)
+                        ? 'bg-brand-50 text-brand-700'
+                        : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                      }
+                    `}
+                    title={collapsed ? label : undefined}
+                  >
+                    <Icon size={20} className={`flex-shrink-0 ${isActive(path) ? 'text-brand-600' : ''}`} />
+                    {!collapsed && <span>{label}</span>}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </nav>
 
