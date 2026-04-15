@@ -3,7 +3,7 @@ import React, { useState, createContext, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import {
   BarChart2, LogOut, Settings as SettingsIcon, ShoppingCart, Package,
-  FileSpreadsheet, Menu, X, ChevronLeft, Clock, Activity, ClipboardList, TrendingUp, Home
+  FileSpreadsheet, Menu, X, ChevronLeft, Clock, Activity, ClipboardList, TrendingUp, Home, ShoppingBag
 } from 'lucide-react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
@@ -19,6 +19,7 @@ import StatisticsPage from './pages/StatisticsPage';
 import AuditPage from './pages/AuditPage';
 import WorkersPage from './pages/WorkersPage';
 import DashboardPage from './pages/DashboardPage';
+import AllOrdersPage from './pages/AllOrdersPage';
 
 // Sidebar context to share collapsed state
 const SidebarContext = createContext({ collapsed: false, setCollapsed: () => {} });
@@ -35,6 +36,7 @@ const navGroups = [
     label: 'Операції',
     items: [
       { path: '/orders', label: 'Замовлення', icon: Package },
+      { path: '/all-orders', label: 'Всі замовлення', icon: ShoppingBag },
       { path: '/sales', label: 'Продажі', icon: ShoppingCart },
       { path: '/audit', label: 'Переоблік', icon: ClipboardList },
       { path: '/excel', label: 'Excel Manager', icon: FileSpreadsheet },
@@ -217,6 +219,7 @@ function AppRoutes() {
         <Route path="/dashboard" element={<PrivateRoute><DashboardPage /></PrivateRoute>} />
         <Route path="/sales" element={<PrivateRoute><SalesPage /></PrivateRoute>} />
         <Route path="/orders" element={<PrivateRoute><OrdersPage /></PrivateRoute>} />
+        <Route path="/all-orders" element={<PrivateRoute><AllOrdersPage /></PrivateRoute>} />
         <Route path="/processing-time" element={<PrivateRoute><ProcessingTimePage /></PrivateRoute>} />
         <Route path="/statistics" element={<PrivateRoute><StatisticsPage /></PrivateRoute>} />
         <Route path="/workers" element={<PrivateRoute><WorkersPage /></PrivateRoute>} />
