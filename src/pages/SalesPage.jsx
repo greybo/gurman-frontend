@@ -10,13 +10,11 @@ export default function SalesPage() {
     error,
     totalSum,
     selectedClient,
-    selectedMonth,
-    selectedYear,
-    setSelectedMonth,
-    setSelectedYear,
+    dateFrom,
+    dateTo,
+    setDateFrom,
+    setDateTo,
     clearFilters,
-    uniqueMonths,
-    uniqueYears,
     formatDate,
     getPhone,
     getClientName,
@@ -32,18 +30,6 @@ export default function SalesPage() {
     dateSortOrder,
     toggleDateSort
   } = useSalesData();
-
-  // Month names for display
-  const getMonthName = (monthStr) => {
-    if (!monthStr) return '';
-    const months = [
-      'Січень', 'Лютий', 'Березень', 'Квітень', 'Травень', 'Червень',
-      'Липень', 'Серпень', 'Вересень', 'Жовтень', 'Листопад', 'Грудень'
-    ];
-    const monthNum = parseInt(monthStr.split('-')[1], 10);
-    const year = monthStr.split('-')[0];
-    return `${months[monthNum - 1]} ${year}`;
-  };
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -78,7 +64,7 @@ export default function SalesPage() {
       <div className="bg-white rounded-xl border border-gray-200 p-6 mb-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Фільтри</h3>
-          {(selectedClient || selectedMonth) && (
+          {selectedClient && (
             <button
               onClick={clearFilters}
               className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -90,40 +76,32 @@ export default function SalesPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Year Filter */}
+          {/* Date From Filter */}
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <Calendar size={16} className="text-gray-500" />
-              Рік
+              Дата від
             </label>
-            <select
+            <input
+              type="date"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(e.target.value)}
-            >
-              <option value="">Всі роки</option>
-              {uniqueYears.map(year => (
-                <option key={year} value={year}>{year}</option>
-              ))}
-            </select>
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+            />
           </div>
 
-          {/* Month Filter */}
+          {/* Date To Filter */}
           <div className="flex flex-col gap-2">
             <label className="flex items-center gap-2 text-sm font-medium text-gray-700">
               <Calendar size={16} className="text-gray-500" />
-              Місяць
+              Дата до
             </label>
-            <select
+            <input
+              type="date"
               className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-            >
-              <option value="">Всі місяці</option>
-              {uniqueMonths.map(month => (
-                <option key={month} value={month}>{getMonthName(month)}</option>
-              ))}
-            </select>
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+            />
           </div>
 
           {/* Client Filter */}
