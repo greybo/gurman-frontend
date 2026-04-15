@@ -73,10 +73,18 @@ function OrderDetailModal({ order, onClose, formatDate, getStatusInfo, getShippi
           {/* Main Info */}
           <div className="grid grid-cols-2 gap-4">
             <InfoItem icon={Hash} label="ID замовлення" value={order.orderId} />
-            <InfoItem icon={Phone} label="Телефон" value={order.phone || '—'} />
+            <InfoItem
+              icon={Phone}
+              label="Клієнт"
+              value={`${`${order.fName || ''} ${order.lName || ''}`.trim() || '—'} · ${order.phone || '—'}`}
+            />
             <InfoItem icon={Calendar} label="Дата замовлення" value={formatDate(order.orderTime)} />
             <InfoItem icon={Clock} label="Останнє оновлення" value={formatDate(order.updatedAt)} />
-            <InfoItem icon={Truck} label="Доставка" value={getShippingName(order.shippingMethod)} />
+            <InfoItem
+              icon={Truck}
+              label="Доставка"
+              value={`${getShippingName(order.shippingMethod)}${order.trackingNumber ? ` · ${order.trackingNumber}` : ''}`}
+            />
             <InfoItem icon={CreditCard} label="Оплата" value={getPaymentName(order.paymentMethod)} />
             <InfoItem icon={Hash} label="ID контакту" value={order.contactId || '—'} />
             <InfoItem icon={Hash} label="ID менеджера" value={order.managerId || '—'} />
@@ -333,7 +341,7 @@ export default function AllOrdersPage() {
                     ID
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 tracking-wider">
-                    Телефон
+                    Клієнт
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 tracking-wider">
                     Статус
@@ -365,8 +373,13 @@ export default function AllOrdersPage() {
                     <td className="px-4 py-3 text-sm font-semibold text-brand-600">
                       #{order.orderId}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-700">
-                      {order.phone || '—'}
+                    <td className="px-4 py-3 text-sm">
+                      <div className="font-medium text-gray-900">
+                        {`${order.fName || ''} ${order.lName || ''}`.trim() || '—'}
+                      </div>
+                      <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                        <Phone size={11} /> {order.phone || '—'}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge statusId={order.currentStatus} getStatusInfo={getStatusInfo} />
@@ -379,6 +392,11 @@ export default function AllOrdersPage() {
                         <Truck size={14} className="text-gray-400" />
                         {getShippingName(order.shippingMethod)}
                       </div>
+                      {order.trackingNumber && (
+                        <div className="text-xs text-gray-500 font-mono mt-0.5">
+                          {order.trackingNumber}
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-900 text-right font-medium">
                       {order.salesAmount?.toLocaleString('uk-UA') || '—'}

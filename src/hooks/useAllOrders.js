@@ -94,19 +94,25 @@ export default function useAllOrders() {
 
   // Filtered by search
   const filteredOrders = useMemo(() => {
-    if (!searchQuery.trim()) return orders;
-    const q = searchQuery.toLowerCase().trim();
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return orders;
+    const tokens = trimmed.toLowerCase().split(/\s+/).filter(Boolean);
+
     return orders.filter((order) => {
-      const orderId = String(order.orderId || '');
-      const phone = String(order.phone || '');
-      const contactId = String(order.contactId || '');
-      const campaign = order.utm?.campaign || '';
-      return (
-        orderId.includes(q) ||
-        phone.includes(q) ||
-        contactId.includes(q) ||
-        campaign.toLowerCase().includes(q)
-      );
+      const haystack = [
+        String(order.orderId || ''),
+        String(order.phone || ''),
+        String(order.contactId || ''),
+        String(order.trackingNumber || ''),
+        (order.fName || '').toLowerCase(),
+        (order.lName || '').toLowerCase(),
+        `${order.fName || ''} ${order.lName || ''}`.toLowerCase().trim(),
+        `${order.lName || ''} ${order.fName || ''}`.toLowerCase().trim(),
+        (order.utm?.campaign || '').toLowerCase(),
+      ].join(' ');
+
+      // Every token must be found somewhere in the haystack
+      return tokens.every((t) => haystack.includes(t));
     });
   }, [orders, searchQuery]);
 
