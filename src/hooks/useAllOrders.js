@@ -65,9 +65,9 @@ export default function useAllOrders() {
 
       const q = query(
         colRef,
-        where('orderTime', '>=', startDate),
-        where('orderTime', '<=', endDate),
-        orderBy('orderTime', 'desc')
+        where('updatedAt', '>=', startDate),
+        where('updatedAt', '<=', endDate),
+        orderBy('updatedAt', 'desc')
       );
 
       const snapshot = await getDocs(q);
